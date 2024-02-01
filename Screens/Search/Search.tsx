@@ -1,17 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import TopBar from '../Components/TopBar'
-import BottomBar from '../Components/BottomBar';
+import TopBar from '../../Components/TopBar';
+import BottomBar from '../../Components/BottomBar';
 
-const Notifications = ({ navigation }) => {
+const Search = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <TopBar />
       {/* Main Content */}
       <View style={styles.content}>
-        <Text>Welcome to the Notifications Screen!</Text>
+        <Text>Welcome to the Search Screen!</Text>
       </View>
-      <BottomBar navigation={navigation}/>
+      <BottomBar navigation={navigation} />
     </View>
   );
 };
@@ -28,4 +28,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Notifications;
+export default Search;

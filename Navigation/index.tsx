@@ -2,11 +2,11 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import Home from "../Screens/Home";
-import Notifications from "../Screens/Notifications";
-import Search from "../Screens/Search";
-import Messages from "../Screens/Messages";
-import Profile from "../Screens/Profile";
+import Home from "../Screens/Home/Home";
+import Notifications from "../Screens/Notifications/Notifications";
+import Search from "../Screens/Search/Search";
+import Messages from "../Screens/Messages/Messages";
+import Profile from "../Screens/Profile/Profile";
 
 const Stack = createStackNavigator();
 

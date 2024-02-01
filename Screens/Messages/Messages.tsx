@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import TopBar from '../Components/TopBar';
-import BottomBar from '../Components/BottomBar';
+import TopBar from '../../Components/TopBar';
+import BottomBar from '../../Components/BottomBar';
 
 const Messages = ({ navigation }) => {
   return (
