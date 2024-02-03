@@ -7,6 +7,7 @@ import Notifications from "../Screens/Notifications/Notifications";
 import Search from "../Screens/Search/Search";
 import Messages from "../Screens/Messages/Messages";
 import Profile from "../Screens/Profile/Profile";
+import Sell from "../Screens/Sell/Sell";
 
 const Stack = createStackNavigator();
 
@@ -19,6 +20,7 @@ export default function AppNavigation() {
         <Stack.Screen name="Search" component={Search} options={{ headerShown: false }} />
         <Stack.Screen name="Messages" component={Messages} options={{ headerShown: false }} />
         <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+        <Stack.Screen name="Sell" component={Sell} options={{ headerShown: false }} />
         {/* Add more screens here */}
       </Stack.Navigator>
     </NavigationContainer>

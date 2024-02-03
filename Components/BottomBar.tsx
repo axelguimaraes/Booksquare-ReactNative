@@ -16,8 +16,8 @@ const BottomBar: React.FC<BottomBarProps> = ({ navigation }) => {
   const navigateToNotificationsScreen = () => {
     navigation.navigate('Notifications');
   };
-  const navigateToSeachScreen = () => {
-    navigation.navigate('Search');
+  const navigateToSellScreen = () => {
+    navigation.navigate('Sell');
   };
   const navigateToMessagesScreen = () => {
     navigation.navigate('Messages');
@@ -35,8 +35,8 @@ const BottomBar: React.FC<BottomBarProps> = ({ navigation }) => {
       <TouchableOpacity style={styles.iconButton} onPress={navigateToNotificationsScreen}>
         <Ionicons name="notifications-outline" size={24} color="black" />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.iconButton} onPress={navigateToSeachScreen}>
-        <Ionicons name="search-outline" size={24} color="black" />
+      <TouchableOpacity style={styles.iconButton} onPress={navigateToSellScreen}>
+        <Ionicons name="add-circle-outline" size={24} color="black" />
       </TouchableOpacity>
       <TouchableOpacity style={styles.iconButton} onPress={navigateToMessagesScreen}>
         <Ionicons name="mail-outline" size={24} color="black" />

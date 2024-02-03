@@ -1,16 +1,51 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import BookDetailsDialog from './BookDetailsDialog'; // Import the BookDetailsDialog component
 
-const BookCard = ({ book }) => {
+interface Book {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  tags: string[];
+  photos: string[];
+}
+
+
+interface Props {
+  book: Book;
+}
+
+const BookCard: React.FC<Props> = ({ book }) => {
+  const [dialogVisible, setDialogVisible] = useState(false);
+
+  const handleOpenDialog = () => {
+    setDialogVisible(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogVisible(false);
+  };
+
   return (
-    <View style={styles.container}>
-      <Image source={{ uri: book.photo }} style={styles.image} />
-      <View style={styles.content}>
-        <Text style={styles.title}>{book.title}</Text>
-        <Text style={styles.description}>{book.description}</Text>
-        <Text style={styles.price}>{book.price}€</Text>
-      </View>
-    </View>
+    <>
+      <TouchableOpacity onPress={handleOpenDialog}>
+        <View style={styles.container}>
+          <Image source={{ uri: book.photos[0] }} style={styles.image} />
+          <View style={styles.content}>
+            <Text style={styles.title}>{book.title}</Text>
+            <Text style={styles.description}>{book.description}</Text>
+            <Text style={styles.price}>{book.price}€</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+      <BookDetailsDialog
+        book={book}
+        visible={dialogVisible}
+        onClose={handleCloseDialog}
+        onAddToCart={() => console.log('Add to Cart')} // Add your logic for adding to cart here
+      />
+    </>
   );
 };
 
