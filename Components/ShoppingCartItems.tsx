@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, FlatList, Button, TouchableOpacity, StyleSheet } from 'react-native';
-import { CartItem } from '../../Models/CartItem';
+import { CartItem } from '../Models/CartItem';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Props {

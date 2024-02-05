@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ShoppingCart from './ShoppingCartItems';
+import ShoppingCart from '../../Components/ShoppingCartItems';
 import { CartItem } from '../../Models/CartItem';
 import { useNavigation } from '@react-navigation/native';
 import CartItemService from '../../Services/CartItemService';
