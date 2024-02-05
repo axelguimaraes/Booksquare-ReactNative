@@ -1,23 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ShoppingCart from './ShoppingCartItems';
 import { CartItem } from '../../Models/CartItem';
 import { useNavigation } from '@react-navigation/native';
+import CartItemService from '../../Services/CartItemService';
 
 const ShoppingCartScreen: React.FC = () => {
-    const navigation = useNavigation()
+    const navigation = useNavigation();
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const cartItemService = new CartItemService();
 
-    const [cartItems, setCartItems] = useState<CartItem[]>([
-        { id: 1, title: 'Item 1', price: 10.99, quantity: 2 },
-        { id: 2, title: 'Item 2', price: 12.99, quantity: 1 },
-    ]);
+    useEffect(() => {
+        // Load cart items when the component mounts
+        loadCartItems();
+    }, []);
 
-    // Define handles for cart actions
-    const handleRemoveItem = (itemId: number) => {
-        // Logic to remove item from cart
-        // Update cartItems state accordingly
+    const loadCartItems = () => {
+        setCartItems(cartItemService.getAllCartItems());
     };
+
+    const handleRemoveItem = (itemId: number) => {
+        // Delete item from cartItems state
+        setCartItems(prevCartItems => prevCartItems.filter(item => item.id !== itemId));
+        // Also delete item from CartItemService
+        cartItemService.deleteCartItem(itemId);
+    };    
 
     const handleAdjustQuantity = (itemId: number, action: 'increment' | 'decrement') => {
         // Logic to adjust item quantity
@@ -25,8 +33,8 @@ const ShoppingCartScreen: React.FC = () => {
     };
 
     const handleEmptyCart = () => {
-        // Logic to empty the cart
-        // Update cartItems state accordingly
+        cartItemService.emptyCart();
+        setCartItems([]); // Clear cart items state
     };
 
     const handleCheckout = () => {
@@ -34,7 +42,7 @@ const ShoppingCartScreen: React.FC = () => {
     };
 
     const handleGoBack = () => {
-        navigation.goBack()
+        navigation.goBack();
     };
 
     // Calculate total price of all items in cart
@@ -53,14 +61,24 @@ const ShoppingCartScreen: React.FC = () => {
                 onRemoveItem={handleRemoveItem}
                 onAdjustQuantity={handleAdjustQuantity}
             />
-            <View style={styles.total}>
-                <Text style={styles.totalText}>Total: {totalPrice.toFixed(2)}€</Text>
-            </View>
+            {cartItems.length === 0 ? (
+                <Text style={styles.noItemsText}>Nenhum item adicionado</Text>
+            ) : (
+                <>
+                    <View style={styles.total}>
+                        <Text style={styles.totalText}>Total: {totalPrice.toFixed(2)}€</Text>
+                    </View>
+                </>
+            )}
             <View style={styles.buttonContainer}>
                 <TouchableOpacity onPress={handleEmptyCart} style={[styles.button, styles.emptyButton]}>
                     <Text style={styles.buttonText}>Esvaziar carrinho</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleCheckout} style={[styles.button, styles.checkoutButton]}>
+                <TouchableOpacity
+                    onPress={handleCheckout}
+                    style={[styles.button, styles.checkoutButton, cartItems.length === 0 && styles.disabledButton]}
+                    disabled={cartItems.length === 0}
+                >
                     <Text style={styles.buttonText}>Pagar</Text>
                 </TouchableOpacity>
             </View>
@@ -81,7 +99,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
         width: '100%',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     backButton: {
         position: 'absolute',
@@ -92,6 +110,13 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
+    },
+    noItemsText: {
+        fontSize: 16,
+        marginTop: 20,
+        marginBottom: 20,
+        fontWeight: 'bold',
+        color: 'red',
     },
     total: {
         marginTop: 20,
@@ -119,13 +144,16 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     checkoutButton: {
-        backgroundColor: 'green',
+        backgroundColor: '#8C756A',
         marginLeft: 10,
     },
     buttonText: {
         fontSize: 16,
         fontWeight: 'bold',
         color: 'white',
+    },
+    disabledButton: {
+        backgroundColor: 'lightgrey',
     },
 });
 
