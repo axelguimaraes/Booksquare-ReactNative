@@ -1,8 +1,18 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { NavigationProp } from '@react-navigation/native';
 
-const TopBar: React.FC = () => {
+interface TopBarProps {
+  navigation: NavigationProp<any>;
+}
+
+const TopBar: React.FC<TopBarProps> = ({navigation}) => {
+
+  const navigateToShoppingCart = () => {
+    navigation.navigate('ShoppingCartScreen')
+  }
+
   return (
     <View style={styles.appBar}>
       <View style={styles.appBarLeft}>
@@ -16,7 +26,7 @@ const TopBar: React.FC = () => {
         </TouchableOpacity>
       </View>
       <Text style={styles.appBarTitle}>BookSquare</Text>
-      <TouchableOpacity style={styles.cartIcon}>
+      <TouchableOpacity style={styles.cartIcon} onPress={navigateToShoppingCart}>
         <Ionicons name="cart-outline" size={24} color="white" />
       </TouchableOpacity>
     </View>

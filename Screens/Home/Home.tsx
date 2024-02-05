@@ -7,7 +7,7 @@ import Tabs from '../../Components/MainTabs';
 const Home = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <TopBar />
+      <TopBar navigation={navigation} />
       <Tabs />
       <BottomBar navigation={navigation} />
     </View>
