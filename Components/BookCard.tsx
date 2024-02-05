@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import BookDetailsDialog from './BookDetailsDialog'; // Import the BookDetailsDialog component
-
-interface Book {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  tags: string[];
-  photos: string[];
-}
-
+import { Book } from '../Models/Book';
 
 interface Props {
   book: Book;

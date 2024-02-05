@@ -1,71 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList } from 'react-native';
 import BookCard from '../../Components/BookCard';
+import { getAllBooks } from '../../Services/BooksService'; // Import the getAllBooks function from the BooksService
+import { Book } from '../../Models/Book';
 
-const BuyScreen = () => {
-  // Dummy data books
-  const dummyBooks = [
-    {
-      id: 1,
-      title: 'Book 1',
-      description: 'Description of Book 1',
-      price: 10.99,
-      photos: [
-        'https://via.placeholder.com/150/photo1.jpg',
-        'https://via.placeholder.com/150/photo2.jpg',
-      ],
-      tags: ['Drama', 'Thriller']
-    },
-    {
-      id: 2,
-      title: 'Book 2',
-      description: 'Description of Book 2',
-      price: 12.99,
-      photos: [
-        'https://via.placeholder.com/150/photo1.jpg',
-        'https://via.placeholder.com/150/photo2.jpg',
-      ],
-      tags: ['Romance']
-    },
-    {
-      id: 3,
-      title: 'Book 3',
-      description: 'Description of Book 3',
-      price: 12.99,
-      photos: [
-        'https://via.placeholder.com/150/photo1.jpg',
-        'https://via.placeholder.com/150/photo2.jpg',
-      ],
-      tags: ['Science Fiction']
-    },
-    {
-      id: 4,
-      title: 'Book 4',
-      description: 'Description of Book 4',
-      price: 12.99,
-      photos: [
-        'https://via.placeholder.com/150/photo1.jpg',
-        'https://via.placeholder.com/150/photo2.jpg',
-      ], tags: ['Fantasy']
-    },
-    {
-      id: 5,
-      title: 'Book 5',
-      description: 'Description of Book 5',
-      price: 12.99,
-      photos: [
-        'https://via.placeholder.com/150/photo1.jpg',
-        'https://via.placeholder.com/150/photo2.jpg',
-      ],
-      tags: ['Mystery', 'Suspense']
-    },
-  ];
+const BuyScreen: React.FC = () => {
+  const [books, setBooks] = useState<Book[]>([]); // State to store the fetched books
+
+  useEffect(() => {
+    // Fetch books data when the component mounts
+    const fetchBooks = async () => {
+      try {
+        const fetchedBooks: Book[] = await getAllBooks(); // Call the getAllBooks function to fetch books
+        setBooks(fetchedBooks); // Set the fetched books in the state
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+
+    fetchBooks(); // Call the fetchBooks function
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
       <FlatList
-        data={dummyBooks}
-        renderItem={({ item }) => <BookCard book={item} />}
+        data={books} // Pass the fetched books data to FlatList
+        renderItem={({ item }) => <BookCard book={item} />} // Render each book using BookCard component
         keyExtractor={(item) => item.id.toString()}
       />
     </View>

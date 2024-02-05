@@ -1,15 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-interface Book {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  tags: string[];
-  photos: string[];
-}
+import { Book } from '../Models/Book';
 
 interface Props {
   book: Book;
