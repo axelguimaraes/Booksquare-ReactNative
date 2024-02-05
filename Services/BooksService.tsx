@@ -1,15 +1,22 @@
-import { Book } from "../Models/Book";
+import { Book, TransactionType } from "../Models/Book";
 import DummyBooks from "../DummyData/Books";
 
 // Function to fetch all books from the database
-export const getAllBooks = (): Promise<Book[]> => {
+export const getAllBooks = (transactionType?: TransactionType): Promise<Book[]> => {
   // Simulate an asynchronous call to a database
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(DummyBooks);
+      let filteredBooks = DummyBooks;
+      
+      if (transactionType) {
+        filteredBooks = DummyBooks.filter(book => book.transactionType === transactionType);
+      }
+
+      resolve(filteredBooks);
     }, 1000); // Simulate a delay of 1 second
   });
 };
+
 
 // Function to fetch a single book by its ID from the database
 export const getBookById = (id: number): Promise<Book> => {

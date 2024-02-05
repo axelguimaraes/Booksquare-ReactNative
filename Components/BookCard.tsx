@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import BookDetailsDialog from './BookDetailsDialog'; // Import the BookDetailsDialog component
-import { Book } from '../Models/Book';
+import { Book, TransactionType } from '../Models/Book';
 
 interface Props {
   book: Book;
@@ -27,11 +27,13 @@ const BookCard: React.FC<Props> = ({ book }) => {
             <Text style={styles.title}>{book.title}</Text>
             <Text style={styles.authorYear}>{book.author}, {book.year}</Text>
             <View style={styles.tagsContainer}>
-              {book.tags.map((tag, index) => (
+              {book.genre.map((tag, index) => (
                 <Text key={index} style={styles.tag}>{tag}</Text>
               ))}
             </View>
-            <Text style={styles.price}>{book.price}€</Text>
+            {book.transactionType === TransactionType.SALE && book.price &&
+                <Text style={styles.price}>Preço: {book.price}€</Text>
+              }
           </View>
         </View>
       </TouchableOpacity>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Book } from '../Models/Book';
+import { Book, Genre, TransactionType } from '../Models/Book'; // Import modified enums
 
 interface Props {
   book: Book;
@@ -27,7 +27,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onAddToCar
 
           {/* Photos */}
           <ScrollView horizontal>
-            {book.photos.length > 0 && (
+            {book.photos && book.photos.length > 0 && (
               <Image source={{ uri: book.photos[0] }} style={styles.bookImage} />
             )}
             {/* Additional photos can be displayed here */}
@@ -37,20 +37,30 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onAddToCar
           <View style={styles.bookDetails}>
             <View style={styles.row}>
               <Text style={styles.title}>{book.title}</Text>
-              <Text style={styles.price}>Preço: {book.price}€</Text>
+              {book.transactionType === TransactionType.SALE && book.price &&
+                <Text style={styles.price}>Preço: {book.price}€</Text>
+              }
             </View>
-            <Text style={styles.description}>{book.year}, {book.author}</Text>
-            <Text style={styles.authorYear}>{book.description}</Text>
+            <Text style={styles.authorYear}>{book.year}, {book.author}</Text>
+            <Text style={styles.description}>{book.description}</Text>
             {/* Tags */}
             <View style={styles.tagsContainer}>
-              {book.tags.map((tag, index) => (
+              {book.genre.map((tag, index) => (
                 <Text key={index} style={styles.tag}>{tag}</Text>
               ))}
             </View>
             {/* IconAndTextButton (Add to cart) */}
-            <TouchableOpacity style={styles.addToCartButton} onPress={onAddToCart}>
+            <TouchableOpacity
+              style={styles.addToCartButton}
+              onPress={onAddToCart}
+            >
               <Ionicons name="add" size={24} color="white" />
-              <Text style={styles.addToCartText}>Adicionar ao carrinho</Text>
+              <Text style={styles.addToCartText}>
+                {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
+                  book.transactionType === TransactionType.RENT ? 'Alugar' :
+                  'Trocar'
+                }
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

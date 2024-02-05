@@ -1,10 +1,35 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList } from 'react-native';
+import BookCard from '../../Components/BookCard';
+import { getAllBooks } from '../../Services/BooksService';
+import { Book, TransactionType } from '../../Models/Book';
 
-const RentScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text>Second Tab Content</Text>
-  </View>
-);
+const RentScreen: React.FC = () => {
+  const [books, setBooks] = useState<Book[]>([]);
+
+  useEffect(() => {
+    // Fetch books data when the component mounts
+    const fetchBooks = async () => {
+      try {
+        const fetchedBooks: Book[] = await getAllBooks(TransactionType.RENT); 
+        setBooks(fetchedBooks); 
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
+  return (
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={books}
+        renderItem={({ item }) => <BookCard book={item} />}
+        keyExtractor={(item) => item.id.toString()}
+      />
+    </View>
+  );
+};
 
 export default RentScreen;
