@@ -39,7 +39,8 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onAddToCar
               <Text style={styles.title}>{book.title}</Text>
               <Text style={styles.price}>Preço: {book.price}€</Text>
             </View>
-            <Text style={styles.description}>{book.description}</Text>
+            <Text style={styles.description}>{book.year}, {book.author}</Text>
+            <Text style={styles.authorYear}>{book.description}</Text>
             {/* Tags */}
             <View style={styles.tagsContainer}>
               {book.tags.map((tag, index) => (
@@ -97,6 +98,10 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 16,
+  },
+  authorYear: {
+    fontSize: 14,
+    marginBottom: 8,
   },
   description: {
     marginBottom: 10,

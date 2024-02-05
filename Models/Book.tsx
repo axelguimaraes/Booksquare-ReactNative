@@ -5,4 +5,6 @@ export interface Book {
   price: number;
   photos: string[];
   tags: string[];
+  year: number;
+  author: string;
 }

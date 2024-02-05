@@ -25,7 +25,12 @@ const BookCard: React.FC<Props> = ({ book }) => {
           <Image source={{ uri: book.photos[0] }} style={styles.image} />
           <View style={styles.content}>
             <Text style={styles.title}>{book.title}</Text>
-            <Text style={styles.description}>{book.description}</Text>
+            <Text style={styles.authorYear}>{book.author}, {book.year}</Text>
+            <View style={styles.tagsContainer}>
+              {book.tags.map((tag, index) => (
+                <Text key={index} style={styles.tag}>{tag}</Text>
+              ))}
+            </View>
             <Text style={styles.price}>{book.price}€</Text>
           </View>
         </View>
@@ -73,13 +78,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
   },
-  description: {
+  authorYear: {
     fontSize: 14,
     marginBottom: 8,
   },
   price: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 10,
+  },
+  tag: {
+    backgroundColor: '#DADADA',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginRight: 5,
+    marginBottom: 5,
+    borderRadius: 8,
   },
 });
 
