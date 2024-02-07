@@ -3,12 +3,12 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import Home from "../Screens/Home/Home";
-import Notifications from "../Screens/Notifications/Notifications";
 import Search from "../Screens/Search/Search";
 import Messages from "../Screens/Messages/Messages";
 import Profile from "../Screens/Profile/Profile";
 import Sell from "../Screens/Sell/Sell";
 import ShoppingCartScreen from "../Screens/Shopping/ShoppingCartScreen";
+import Notifications from "../Screens/Notifications/Notifications";
 
 const Stack = createStackNavigator();
 

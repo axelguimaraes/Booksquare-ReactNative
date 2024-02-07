@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Book, Genre, TransactionType } from '../Models/Book'; // Import modified enums
+import { Book, TransactionType } from '../Models/Book'; // Import modified enums
 
 interface Props {
   book: Book;
