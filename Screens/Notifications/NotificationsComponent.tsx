@@ -3,7 +3,6 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { getAllNotifications, markNotificationAsRead } from '../../Services/NotificationsService';
 import { Notification } from '../../Models/Notification';
-import Snackbar from 'react-native-snackbar';
 
 const NotificationsComponent: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -21,16 +20,19 @@ const NotificationsComponent: React.FC = () => {
   const markAsRead = (id: number, isRead: boolean) => {
     const action = isRead ? 'marked as read' : 'marked as unread';
     markNotificationAsRead(id).then(() => {
-      /*
-      Snackbar.show({
-        text: `Message ${action}`,
-        duration: Snackbar.LENGTH_SHORT,
+      alert(`The notification has been ${action}`);
+      // Update the notifications state after marking the notification as read/unread
+      setNotifications(prevNotifications => {
+        return prevNotifications.map(notification => {
+          if (notification.id === id) {
+            return { ...notification, isRead };
+          }
+          return notification;
+        });
       });
-      */
-      // Refresh notifications after marking as read/unread
-      fetchNotifications();
     });
   };
+  
 
   const renderItem = ({ item }: { item: Notification }) => (
     <TouchableOpacity
