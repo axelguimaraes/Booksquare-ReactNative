@@ -16,7 +16,7 @@ export enum Genre {
 
 export enum TransactionType {
   SALE = 'Venda',
-  RENT = 'Aluguer',
+  RENTAL = 'Aluguer',
   TRADE = 'Troca',
 }
 

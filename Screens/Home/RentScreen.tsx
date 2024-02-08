@@ -11,7 +11,7 @@ const RentScreen: React.FC = () => {
     // Fetch books data when the component mounts
     const fetchBooks = async () => {
       try {
-        const fetchedBooks: Book[] = await getAllBooks(TransactionType.RENT); 
+        const fetchedBooks: Book[] = await getAllBooks(TransactionType.RENTAL); 
         setBooks(fetchedBooks); 
       } catch (error) {
         console.error('Error fetching books:', error);

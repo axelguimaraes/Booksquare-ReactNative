@@ -6,7 +6,7 @@ import Home from "../Screens/Home/Home";
 import Search from "../Screens/Search/Search";
 import Messages from "../Screens/Messages/Messages";
 import Profile from "../Screens/Profile/Profile";
-import Sell from "../Screens/Sell/Sell";
+import Sell from "../Screens/AddBook/AddBook";
 import ShoppingCartScreen from "../Screens/Shopping/ShoppingCartScreen";
 import Notifications from "../Screens/Notifications/Notifications";
 
