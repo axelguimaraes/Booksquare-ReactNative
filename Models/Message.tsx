@@ -1,7 +1,9 @@
+import { User } from "./User"
+
 export interface Message {
     id: number,
-    idSender: number,
-    idReceiver: number,
+    sender: User,
+    receiver: User,
     timestamp: string,
     content: string
 }

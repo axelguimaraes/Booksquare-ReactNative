@@ -40,7 +40,7 @@ const DummyBooks: Book[] = [
     genre: [Genre.SCI_FI],
     author: 'George Orwell',
     year: 1949,
-    transactionType: TransactionType.RENT
+    transactionType: TransactionType.RENTAL
   },
   {
     id: 4,
@@ -66,7 +66,7 @@ const DummyBooks: Book[] = [
     genre: [Genre.FICTION, Genre.ADVENTURE],
     author: 'Herman Melville',
     year: 1851,
-    transactionType: TransactionType.RENT
+    transactionType: TransactionType.RENTAL
   },
 ];
 

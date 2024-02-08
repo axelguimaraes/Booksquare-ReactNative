@@ -43,6 +43,8 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     marginTop: 20,
+    padding: 20,
+    width: '100%'
   },
   button: {
     backgroundColor: '#8C756A',
