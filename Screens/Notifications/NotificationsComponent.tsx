@@ -61,6 +61,7 @@ const NotificationsComponent: React.FC = () => {
       <View style={styles.iconContainer}>
         <Ionicons
           name={item.isRead ? 'mail-open-outline' : 'mail-unread-outline'}
+          color={item.isRead ? 'lightgray' : 'black'}
           size={24}
         />
       </View>
