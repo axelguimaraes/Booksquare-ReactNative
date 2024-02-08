@@ -3,10 +3,10 @@ import Messages from '../DummyData/Messages';
 import { getUserById } from './UsersService';
 
 const getMessagesByUserId = (userId: number): Message[] => {
-    const user = getUserById(userId); // Fetch the user by ID using the getUsersById function
+    const user = getUserById(userId);
     if (user) {
-        // Filter messages by userId (assuming idSender or idReceiver matches the userId)
-        return Messages.filter(message => message.senderID === userId || message.receiverID === userId);
+        // Filter messages by userId (assuming senderID or receiverID matches the userId)
+        return Messages.filter(message => message.messageThread.some(thread => thread.senderID === userId || thread.receiverID === userId));
     }
     return []; // Return an empty array if user not found
 };

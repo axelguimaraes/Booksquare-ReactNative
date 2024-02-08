@@ -4,6 +4,7 @@ import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import MessagesList from './MessagesList';
 import { getMessagesByUserId } from '../../Services/MessagesService';
+import { getUserById } from '../../Services/UsersService';
 
 const Messages = ({ navigation }) => {
   const [messages, setMessages] = useState([]); 
@@ -27,7 +28,7 @@ const Messages = ({ navigation }) => {
     <View style={styles.container}>
       <TopBar navigation={navigation} />
       <View style={styles.content}>
-        <MessagesList data={messages} />
+        <MessagesList data={messages} navigation={navigation} currentUser={getUserById(1)}/>
       </View>
       <BottomBar navigation={navigation} />
     </View>

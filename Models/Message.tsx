@@ -1,8 +1,12 @@
-export interface Message {
-    id: number,
+interface MessageThread {
     senderID: number,
     receiverID: number,
-    timestamp: string,
-    content: string,
+    content: string;
+    timestamp: string;
     isRead: boolean
+}
+
+export interface Message {
+    id: number,
+    messageThread: MessageThread[]
 }
