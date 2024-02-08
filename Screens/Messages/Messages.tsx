@@ -21,7 +21,7 @@ const Messages = ({ navigation }) => {
 
     console.log("Messages:", messages)
     fetchMessages();
-  }, []); // Empty dependency array ensures the effect runs only once
+  }, []);
 
   return (
     <View style={styles.container}>

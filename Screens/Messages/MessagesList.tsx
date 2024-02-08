@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, FlatList } from 'react-native';
 import ChatCard from '../../Components/ChatCard';
+import { getUserById } from '../../Services/UsersService';
 
 const MessagesList = ({ data }) => {
   return (
@@ -10,11 +11,11 @@ const MessagesList = ({ data }) => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <ChatCard
-            profilePhoto={item.sender.profilePhoto}
-            username={item.sender.username}
-            messageSnippet={item.content} // Update to message content
+            profilePhoto={getUserById(item.senderID).profilePhoto}
+            username={getUserById(item.senderID).username}
+            messageSnippet={item.content}
             timestamp={item.timestamp}
-            isRead={true} // Update according to your logic for isRead
+            isRead={item.isRead}
           />
         )}
       />

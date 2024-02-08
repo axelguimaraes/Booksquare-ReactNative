@@ -1,36 +1,21 @@
 import { Message } from "../Models/Message";
-import { User } from "../Models/User";
-
-const user1: User = {
-    id: 1,
-    username: "senderUsername",
-    email: "sender@example.com",
-    password: "password123",
-    profilePhoto: "sender_profile_photo.jpg",
-};
-
-const user2: User = {
-    id: 2,
-    username: "receiverUsername",
-    email: "receiver@example.com",
-    password: "password456",
-    profilePhoto: "receiver_profile_photo.jpg",
-};
 
 const Messages: Message[] = [
     {
         id: 1,
-        sender: user1,
-        receiver: user2,
+        senderID: 1,
+        receiverID: 2,
         timestamp: '2024-01-28T10:00:00',
-        content: 'Hello, how are you?'
+        content: 'Hello, how are you?',
+        isRead: true
     },
     {
         id: 2,
-        sender: user2,
-        receiver: user1,
+        senderID: 2,
+        receiverID: 1,
         timestamp: '2024-01-28T10:05:00',
-        content: 'Hi, I\'m good. How about you?'
+        content: 'Hi, I\'m good. How about you?',
+        isRead: false
     },
 ];
 
