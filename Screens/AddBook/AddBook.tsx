@@ -4,7 +4,7 @@ import RNPickerSelect from "react-native-picker-select";
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import { TransactionType } from '../../Models/Book';
-import { CheckBox } from 'react-native-btr';
+import PhotoUpload from '../../Components/PhotoUpload';
 
 const AddBook = ({ navigation }) => {
   const [title, setTitle] = useState('');
@@ -82,7 +82,7 @@ const AddBook = ({ navigation }) => {
             </>
           )}
           <Text style={styles.label}>Carregar fotos</Text>
-          {/* Implement photo upload component here */}
+          <PhotoUpload />
         </View>
         <TouchableOpacity style={styles.confirmButton} onPress={handleAddBook}>
           <Text style={styles.confirmButtonText}>Confirmar</Text>
