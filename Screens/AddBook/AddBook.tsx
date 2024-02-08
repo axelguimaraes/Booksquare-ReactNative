@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import RNPickerSelect from "react-native-picker-select";
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
-import { TransactionType } from '../../Models/Book';
+import CheckboxDropdown from '../../Components/CheckboxDropdown';
+import { TransactionType, Genre } from '../../Models/Book';
 import PhotoUpload from '../../Components/PhotoUpload';
 
 const AddBook = ({ navigation }) => {
@@ -16,6 +17,16 @@ const AddBook = ({ navigation }) => {
   const [author, setAuthor] = useState('');
   const [genres, setGenres] = useState([]);
 
+  const genreOptions = Object.values(Genre).map(genre => ({
+    label: genre,
+    value: genre,
+  }));
+
+  const handleSelectedGenres = (value) => {
+    setGenres(value)
+    console.log("Selected genres:", value)
+  }
+
   const handleAddBook = () => {
     // Handle adding book logic here
   };
@@ -23,7 +34,7 @@ const AddBook = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <TopBar navigation={navigation} />
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Título</Text>
           <TextInput
@@ -56,9 +67,7 @@ const AddBook = ({ navigation }) => {
             placeholder="Inserir autor"
           />
           <Text style={styles.label}>Género</Text>
-          <View>
-            
-          </View>
+          <CheckboxDropdown options={genreOptions} onSelect={handleSelectedGenres} initialSelectedOptions={genres} />
           <Text style={styles.label}>Categoria</Text>
           <RNPickerSelect
             placeholder={{}}
@@ -83,11 +92,11 @@ const AddBook = ({ navigation }) => {
           )}
           <Text style={styles.label}>Carregar fotos</Text>
           <PhotoUpload />
+          <TouchableOpacity style={styles.confirmButton} onPress={handleAddBook}>
+            <Text style={styles.confirmButtonText}>Confirmar</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.confirmButton} onPress={handleAddBook}>
-          <Text style={styles.confirmButtonText}>Confirmar</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
       <BottomBar navigation={navigation} />
     </View>
   );
@@ -98,8 +107,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'space-between',
   },
   inputContainer: {
