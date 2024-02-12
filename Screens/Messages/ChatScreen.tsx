@@ -74,7 +74,6 @@ const styles = StyleSheet.create({
     topBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        //justifyContent: 'space-between',
         marginBottom: 10,
     },
     backButton: {
@@ -97,7 +96,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     userMessageContainer: {
-        backgroundColor: '#DCF8C6',
+        backgroundColor: '#b9aaa3',
         alignSelf: 'flex-end',
         borderRadius: 8,
         padding: 8,
@@ -136,7 +135,7 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     sendButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: '#8C756A',
         borderRadius: 20,
         paddingVertical: 10,
         paddingHorizontal: 15,
