@@ -8,9 +8,9 @@ const ChatScreen = () => {
     const navigation = useNavigation();
 
     const [messages, setMessages] = useState([
-        { id: '1', sender: 'user1', content: 'Hello!', timestamp: '2024-01-28T10:00:00' },
-        { id: '2', sender: 'user2', content: 'Hi there!', timestamp: '2024-01-28T10:05:00' },
-        { id: '3', sender: 'user1', content: 'How are you?', timestamp: '2024-01-28T10:10:00' },
+        { id: '1', sender: 'user1', content: 'Olá!', timestamp: '2024-01-28T10:00:00' },
+        { id: '2', sender: 'user2', content: 'Heyyyy!', timestamp: '2024-01-28T10:05:00' },
+        { id: '3', sender: 'user1', content: 'Como estás?', timestamp: '2024-01-28T10:10:00' },
     ]);
     const [inputMessage, setInputMessage] = useState('');
 

@@ -18,7 +18,7 @@ const TopBar: React.FC<TopBarProps> = ({navigation}) => {
       <View style={styles.appBarLeft}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search"
+          placeholder="Pesquisar"
           placeholderTextColor="#ccc"
         />
         <TouchableOpacity style={styles.searchButton}>

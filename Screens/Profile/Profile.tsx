@@ -10,8 +10,8 @@ const UserProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* TopBar */}
-      <View style={styles.topBar}>
+        {/* TopBar */}
+        <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
@@ -31,16 +31,21 @@ const UserProfileScreen = ({ navigation }) => {
       </View>
 
       {/* Lazy List */}
-      <FlatList
-        data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
-        renderItem={renderListItem}
-        keyExtractor={(item, index) => index.toString()}
-      />
+      <View style={styles.lazyListContainer}>
+        <Text style={styles.lazyListTitle}>Histórico de transações</Text>
+        <FlatList
+          data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
+          renderItem={renderListItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
 
       {/* Logout Button */}
       <TouchableOpacity onPress={() => console.log('Logout')} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Logout</Text>
+        <Text style={styles.logoutText}>Terminar sessão</Text>
       </TouchableOpacity>
+
+      {/* Bottom Bar */}
       <BottomBar navigation={navigation} />
     </View>
   );
@@ -49,6 +54,7 @@ const UserProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 10
   },
   topBar: {
     flexDirection: 'row',
@@ -71,6 +77,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
   },
   profilePhoto: {
     width: 100,
@@ -89,6 +97,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'gray',
   },
+  lazyListContainer: {
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    marginTop: 10,
+    flex: 1,
+  },
+  lazyListTitle: {
+    color: 'black',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 10,
+  },
   listItem: {
     padding: 10,
     fontSize: 16,
@@ -96,8 +117,10 @@ const styles = StyleSheet.create({
   logoutButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'red',
+    backgroundColor: '#8C756A',
     padding: 15,
+    borderRadius: 10,
+    marginTop: 15
   },
   logoutText: {
     color: 'white',
