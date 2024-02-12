@@ -9,6 +9,7 @@ import Profile from "../Screens/Profile/Profile";
 import Sell from "../Screens/AddBook/AddBook";
 import ShoppingCartScreen from "../Screens/Shopping/ShoppingCartScreen";
 import Notifications from "../Screens/Notifications/Notifications";
+import ChatScreen from "../Screens/Messages/ChatScreen";
 
 const Stack = createStackNavigator();
 
@@ -22,7 +23,8 @@ export default function AppNavigation() {
         <Stack.Screen name="Messages" component={Messages} options={{ headerShown: false }} />
         <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
         <Stack.Screen name="Sell" component={Sell} options={{ headerShown: false }} />
-        <Stack.Screen name="ShoppingCartScreen" component={ShoppingCartScreen} options={{headerShown: false}}/>
+        <Stack.Screen name="ShoppingCartScreen" component={ShoppingCartScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -5,7 +5,7 @@ import { getUserById } from '../../Services/UsersService';
 
 const MessagesList = ({ data, navigation, currentUser }) => {
   const handleCardPress = (message) => {
-    navigation.navigate('MessageThreadScreen', { message });
+    navigation.navigate('ChatScreen', { message });
   };
 
   return (
