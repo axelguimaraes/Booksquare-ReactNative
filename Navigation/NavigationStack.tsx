@@ -10,6 +10,8 @@ import Sell from "../Screens/AddBook/AddBook";
 import ShoppingCartScreen from "../Screens/Shopping/ShoppingCartScreen";
 import Notifications from "../Screens/Notifications/Notifications";
 import ChatScreen from "../Screens/Messages/ChatScreen";
+import LoginScreen from "../Screens/Authentication/LoginScreen";
+import Login from "../Screens/Authentication/Login";
 
 const Stack = createStackNavigator();
 
@@ -17,6 +19,8 @@ export default function AppNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen name="LoginScreen" component={LoginScreen} options={{headerShown: false}} />
+        <Stack.Screen name="Login" component={Login} options={{headerShown: false}} />
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} />
         <Stack.Screen name="Search" component={Search} options={{ headerShown: false }} />
