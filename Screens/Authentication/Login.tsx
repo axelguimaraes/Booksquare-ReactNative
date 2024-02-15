@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../Auth/AuthContext';
 
 const Login = ({ navigation }) => {
+    const { login } = useAuth();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -10,7 +13,8 @@ const Login = ({ navigation }) => {
     const handlePasswordChange = (text) => setPassword(text);
 
     const handleEmailLogin = () => {
-        // Perform email login logic here
+        const userData = {email: email, password: password}
+        login(userData)
     };
 
     const handleGoogleLogin = () => {
@@ -46,7 +50,7 @@ const Login = ({ navigation }) => {
                         <Text style={styles.buttonText}>Entrar com Email</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color={'white'}/>
+                        <Ionicons name="arrow-back" size={24} color={'white'} />
                         <Text style={styles.backButtonText}>Voltar</Text>
                     </TouchableOpacity>
                     <View style={styles.separator} />

@@ -2,11 +2,14 @@ import "react-native-gesture-handler";
 import React from "react";
 import AppNavigation from "./Navigation/NavigationStack";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AuthProvider } from "./Auth/AuthContext";
 
 function App() {
   return (
     <SafeAreaView style={{ flex: 1 }} >
-      <AppNavigation />
+      <AuthProvider>
+        <AppNavigation />
+      </AuthProvider>
     </SafeAreaView>
   );
 }
