@@ -16,7 +16,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   }
 
   const handleRegister = () => {
-    navigation.navigate('Home') // CHANGE
+    navigation.navigate('RegisterScreen') // CHANGE
   }
 
   return (
@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 50,
     marginBottom: 20,
     width: 300,
+    elevation: 5
   },
   buttonText: {
     color: '#8C756A',

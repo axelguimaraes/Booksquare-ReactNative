@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const Login = ({ navigation }) => {
+const RegisterScreen = ({ navigation }) => {
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [passwordConfirm, setPasswordConfirm] = useState('');
 
     const handleEmailChange = (text) => setEmail(text);
+    const handleUsernameChange = (text) => setUsername(text)
     const handlePasswordChange = (text) => setPassword(text);
+    const handlePasswordConfirmChange = (text) => setPasswordConfirm(text);
 
-    const handleEmailLogin = () => {
-        // Perform email login logic here
-    };
-
-    const handleGoogleLogin = () => {
-        // Perform Google login logic here
+    const handleRegister = () => {
+        navigation.navigate('Home')
     };
 
     return (
@@ -37,22 +37,30 @@ const Login = ({ navigation }) => {
                     />
                     <TextInput
                         style={styles.input}
+                        value={username}
+                        onChangeText={handleUsernameChange}
+                        placeholder="Nome de utilizador"
+                    />
+                    <TextInput
+                        style={styles.input}
                         value={password}
                         onChangeText={handlePasswordChange}
                         placeholder="Palavra-passe"
                         secureTextEntry={true}
                     />
-                    <TouchableOpacity style={styles.button} onPress={handleEmailLogin}>
-                        <Text style={styles.buttonText}>Entrar com Email</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={passwordConfirm}
+                        onChangeText={handlePasswordConfirmChange}
+                        placeholder="Confirmar palavra-passe"
+                        secureTextEntry={true}
+                    />
+                    <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                        <Text style={styles.buttonText}>Registar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                         <Ionicons name="arrow-back" size={24} color={'white'}/>
                         <Text style={styles.backButtonText}>Voltar</Text>
-                    </TouchableOpacity>
-                    <View style={styles.separator} />
-                    <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
-                        <Text style={styles.googleButtonText}>Entrar com Google</Text>
-                        <Image source={require('../../assets/google.png')} style={styles.googleIcon} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -124,7 +132,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',
-        elevation: 5
     },
     separator: {
         backgroundColor: 'white',
@@ -149,4 +156,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Login;
+export default RegisterScreen;
