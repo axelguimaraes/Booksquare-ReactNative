@@ -12,6 +12,7 @@ import Sell from '../Screens/AddBook/AddBook';
 import ShoppingCartScreen from '../Screens/Shopping/ShoppingCartScreen';
 import Notifications from '../Screens/Notifications/Notifications';
 import ChatScreen from '../Screens/Messages/ChatScreen';
+import Login from '../Screens/Authentication/Login';
 
 const Stack = createStackNavigator();
 
@@ -36,6 +37,7 @@ const AppNavigation: React.FC = () => {
         ) : (
           <>
             <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
             <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{ headerShown: false }} />
           </>
         )}
