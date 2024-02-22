@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { FIREBASE_AUTH } from '../../config/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { registerWithEmailAndPassword } from '../../Services/AuthService';
 
 const RegisterScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
@@ -10,7 +9,6 @@ const RegisterScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [loading, setLoading] = useState(false)
-    const auth = FIREBASE_AUTH
 
     const handleEmailChange = (text) => setEmail(text);
     const handleUsernameChange = (text) => setUsername(text)
@@ -20,11 +18,7 @@ const RegisterScreen = ({ navigation }) => {
     const handleRegister = async () => {
         setLoading(true)
         try {
-            const response = await createUserWithEmailAndPassword(auth, email, password)
-            console.log(response)
-        } catch (error: any) {
-            console.log(error)
-            alert('Register failed: ' + error.message)
+            registerWithEmailAndPassword(email, password)
         } finally {
             setLoading(false)
         }

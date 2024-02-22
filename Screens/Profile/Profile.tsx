@@ -2,8 +2,17 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet } from 'react-native';
 import BottomBar from '../../Components/BottomBar';
 import { Ionicons } from '@expo/vector-icons';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 const UserProfileScreen = ({ navigation }) => {
+
+  const handleLogout = () => {
+    FIREBASE_AUTH.signOut()
+      .then(() => {
+        alert('A sua sessão foi terminada')
+      })
+  }
+
   const renderListItem = ({ item }) => (
     <Text style={styles.listItem}>{item}</Text>
   );
@@ -41,7 +50,7 @@ const UserProfileScreen = ({ navigation }) => {
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity onPress={() => console.log('Logout')} style={styles.logoutButton}>
+      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
         <Text style={styles.logoutText}>Terminar sessão</Text>
       </TouchableOpacity>
 

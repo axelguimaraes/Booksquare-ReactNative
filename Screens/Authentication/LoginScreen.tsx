@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { FIREBASE_AUTH } from '../../config/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { loginWithEmailAndPassword } from '../../Services/AuthService';
 
 const LoginScreen = ({ navigation }) => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false)
-    const auth = FIREBASE_AUTH
 
     const handleEmailChange = (text) => setEmail(text);
     const handlePasswordChange = (text) => setPassword(text);
@@ -17,11 +15,7 @@ const LoginScreen = ({ navigation }) => {
     const handleEmailLogin = async () => {
         setLoading(true)
         try {
-            const response = await signInWithEmailAndPassword(auth, email, password)
-            console.log(response)
-        } catch (error: any) {
-            console.log(error)
-            alert('Sign in failed: ' + error.message)
+            loginWithEmailAndPassword(email, password)
         } finally {
             setLoading(false)
         }
