@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { loginWithEmailAndPassword } from '../../Services/AuthService';
+import { loginWithEmailAndPassword, loginWithGoogle } from '../../Services/AuthService';
 
 const LoginScreen = ({ navigation }) => {
 
@@ -22,7 +22,12 @@ const LoginScreen = ({ navigation }) => {
     };
 
     const handleGoogleLogin = () => {
-        // Perform Google login logic here
+        setLoading(true)
+        try {
+            loginWithGoogle()
+        } finally {
+            setLoading(false)
+        }
     };
 
     return (

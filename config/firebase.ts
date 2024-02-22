@@ -9,6 +9,8 @@ const firebaseConfig = {
     storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
     messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
     appId: Constants.expoConfig?.extra?.firebaseAppId,
+    webClientId: Constants.expoConfig?.extra.webClientId,
+    webClientSecretKey: Constants.expoConfig?.extra?.webClientSecretKey
   };
 
 export const FIREBASE_APP = initializeApp(firebaseConfig);

@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, ActivityIndicator } from 'react-native';
+import { loginAnonymously } from '../../Services/AuthService';
 
 interface LoginScreenProps {
   navigation: any; // Adjust the type according to your navigation prop type
@@ -7,16 +8,23 @@ interface LoginScreenProps {
 
 const WelcomeScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
+  const [loading, setLoading] = useState(false)
+
   const handleLogin = () => {
     navigation.navigate('LoginScreen')
   }
 
-  const handleEnterAsGuest = () => {
-    navigation.navigate('Home') // CHANGE
-  }
+  const handleEnterAsGuest = async () => {
+    setLoading(true)
+    try {
+      loginAnonymously()
+    } finally {
+      setLoading(false)
+    }
+  };
 
   const handleRegister = () => {
-    navigation.navigate('RegisterScreen') // CHANGE
+    navigation.navigate('RegisterScreen')
   }
 
   return (
@@ -28,19 +36,24 @@ const WelcomeScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       </View>
 
       {/* Login Buttons */}
-      <View style={styles.loginContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
-        </TouchableOpacity>
+      {loading ? <ActivityIndicator size="large" color="white" />
+        :
+        <>
+          <View style={styles.loginContainer}>
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>Entrar</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleEnterAsGuest}>
-          <Text style={styles.buttonText}>Entrar como convidado</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={handleEnterAsGuest}>
+              <Text style={styles.buttonText}>Entrar como convidado</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleRegister}>
-          <Text style={styles.registerText}>Não tem uma conta? Registe-se</Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity onPress={handleRegister}>
+              <Text style={styles.registerText}>Não tem uma conta? Registe-se</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      }
     </View>
   );
 };
