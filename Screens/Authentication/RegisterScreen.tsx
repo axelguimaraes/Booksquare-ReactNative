@@ -1,20 +1,33 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { FIREBASE_AUTH } from '../../config/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const RegisterScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
+    const [loading, setLoading] = useState(false)
+    const auth = FIREBASE_AUTH
 
     const handleEmailChange = (text) => setEmail(text);
     const handleUsernameChange = (text) => setUsername(text)
     const handlePasswordChange = (text) => setPassword(text);
     const handlePasswordConfirmChange = (text) => setPasswordConfirm(text);
 
-    const handleRegister = () => {
-        navigation.navigate('Home')
+    const handleRegister = async () => {
+        setLoading(true)
+        try {
+            const response = await createUserWithEmailAndPassword(auth, email, password)
+            console.log(response)
+        } catch (error: any) {
+            console.log(error)
+            alert('Register failed: ' + error.message)
+        } finally {
+            setLoading(false)
+        }
     };
 
     return (
@@ -34,6 +47,7 @@ const RegisterScreen = ({ navigation }) => {
                         value={email}
                         onChangeText={handleEmailChange}
                         placeholder="Email"
+                        autoCapitalize='none'
                     />
                     <TextInput
                         style={styles.input}
@@ -55,13 +69,18 @@ const RegisterScreen = ({ navigation }) => {
                         placeholder="Confirmar palavra-passe"
                         secureTextEntry={true}
                     />
-                    <TouchableOpacity style={styles.button} onPress={handleRegister}>
-                        <Text style={styles.buttonText}>Registar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color={'white'}/>
-                        <Text style={styles.backButtonText}>Voltar</Text>
-                    </TouchableOpacity>
+                    {loading ? <ActivityIndicator size="large" color="white" />
+                        :
+                        <>
+                            <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                                <Text style={styles.buttonText}>Registar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                                <Ionicons name="arrow-back" size={24} color={'white'} />
+                                <Text style={styles.backButtonText}>Voltar</Text>
+                            </TouchableOpacity>
+                        </>
+                    }
                 </View>
             </View>
         </View>

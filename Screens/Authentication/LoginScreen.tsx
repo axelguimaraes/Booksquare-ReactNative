@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { FIREBASE_AUTH } from '../../config/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const LoginScreen = ({ navigation }) => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false)
+    const auth = FIREBASE_AUTH
 
     const handleEmailChange = (text) => setEmail(text);
     const handlePasswordChange = (text) => setPassword(text);
 
-    const handleEmailLogin = () => {
-        
+    const handleEmailLogin = async () => {
+        setLoading(true)
+        try {
+            const response = await signInWithEmailAndPassword(auth, email, password)
+            console.log(response)
+        } catch (error: any) {
+            console.log(error)
+            alert('Sign in failed: ' + error.message)
+        } finally {
+            setLoading(false)
+        }
     };
 
     const handleGoogleLogin = () => {
@@ -35,6 +48,7 @@ const LoginScreen = ({ navigation }) => {
                         value={email}
                         onChangeText={handleEmailChange}
                         placeholder="Email"
+                        autoCapitalize='none'
                     />
                     <TextInput
                         style={styles.input}
@@ -43,18 +57,23 @@ const LoginScreen = ({ navigation }) => {
                         placeholder="Palavra-passe"
                         secureTextEntry={true}
                     />
-                    <TouchableOpacity style={styles.button} onPress={handleEmailLogin}>
-                        <Text style={styles.buttonText}>Entrar com Email</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color={'white'} />
-                        <Text style={styles.backButtonText}>Voltar</Text>
-                    </TouchableOpacity>
-                    <View style={styles.separator} />
-                    <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
-                        <Text style={styles.googleButtonText}>Entrar com Google</Text>
-                        <Image source={require('../../assets/google.png')} style={styles.googleIcon} />
-                    </TouchableOpacity>
+                    {loading ? <ActivityIndicator size="large" color="white" />
+                        :
+                        <>
+                            <TouchableOpacity style={styles.button} onPress={handleEmailLogin}>
+                                <Text style={styles.buttonText}>Entrar com Email</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                                <Ionicons name="arrow-back" size={24} color={'white'} />
+                                <Text style={styles.backButtonText}>Voltar</Text>
+                            </TouchableOpacity>
+                            <View style={styles.separator} />
+                            <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
+                                <Text style={styles.googleButtonText}>Entrar com Google</Text>
+                                <Image source={require('../../assets/google.png')} style={styles.googleIcon} />
+                            </TouchableOpacity>
+                        </>
+                    }
                 </View>
             </View>
         </View>
