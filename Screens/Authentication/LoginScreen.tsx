@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../Auth/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
-    const { login } = useAuth();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -13,8 +11,7 @@ const LoginScreen = ({ navigation }) => {
     const handlePasswordChange = (text) => setPassword(text);
 
     const handleEmailLogin = () => {
-        const userData = {email: email, password: password}
-        login(userData)
+        
     };
 
     const handleGoogleLogin = () => {

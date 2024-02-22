@@ -8,7 +8,7 @@ interface LoginScreenProps {
 const WelcomeScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   const handleLogin = () => {
-    navigation.navigate('Login')
+    navigation.navigate('LoginScreen')
   }
 
   const handleEnterAsGuest = () => {
