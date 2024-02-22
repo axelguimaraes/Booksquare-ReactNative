@@ -1,12 +1,12 @@
 import "react-native-gesture-handler";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import RootNavigation from "./Navigation";
+import AppNavigation from "./Navigation/NavigationStack";
 
 function App() {
   return (
     <SafeAreaView style={{ flex: 1 }} >
-        <RootNavigation />
+        <AppNavigation />
     </SafeAreaView>
   );
 }
