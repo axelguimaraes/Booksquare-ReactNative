@@ -16,7 +16,7 @@ export const loginWithEmailAndPassword = async (email, password) => {
 
 export const loginWithGoogle = async () => {
     try {
-        
+        // TODO: Login with google
     } catch (error: any) {
         console.log(error)
         alert('Erro ao tentar entrar: ' + error.message)
