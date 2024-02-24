@@ -17,6 +17,7 @@ export const loginWithEmailAndPassword = async (email, password) => {
 export const loginWithGoogle = async () => {
     try {
         // TODO: Login with google
+        alert('Funcionalidade de momento não suportada.')
     } catch (error: any) {
         console.log(error)
         alert('Erro ao tentar entrar: ' + error.message)
