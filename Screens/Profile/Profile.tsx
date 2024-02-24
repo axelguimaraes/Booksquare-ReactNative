@@ -5,6 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { FIREBASE_AUTH } from '../../config/firebase';
 
 const UserProfileScreen = ({ navigation }) => {
+  const user = FIREBASE_AUTH.currentUser
+
+  const isAnonymous = FIREBASE_AUTH.currentUser.isAnonymous ? true : false;
 
   const handleLogout = () => {
     FIREBASE_AUTH.signOut()
@@ -19,8 +22,8 @@ const UserProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-        {/* TopBar */}
-        <View style={styles.topBar}>
+      {/* TopBar */}
+      <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
@@ -34,8 +37,12 @@ const UserProfileScreen = ({ navigation }) => {
       <View style={styles.profileContainer}>
         <Image source={{ uri: 'https://via.placeholder.com/150/foto1.jpg' }} style={styles.profilePhoto} />
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>John Doe</Text>
-          <Text style={styles.email}>john.doe@example.com</Text>
+          {isAnonymous ? <Text style={styles.name}>Convidado</Text> :
+            <>
+              <Text style={styles.name}>{isAnonymous ? "Convidado" : user.displayName}</Text>
+              <Text style={styles.email}>{isAnonymous ? "Convidado" : user.email}</Text>
+            </>
+          }
         </View>
       </View>
 

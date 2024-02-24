@@ -9,16 +9,34 @@ const RegisterScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState("")
 
     const handleEmailChange = (text) => setEmail(text);
     const handleUsernameChange = (text) => setUsername(text)
     const handlePasswordChange = (text) => setPassword(text);
     const handlePasswordConfirmChange = (text) => setPasswordConfirm(text);
 
+    const isValid = () => {
+        if (!username || !email || !password || !passwordConfirm) {
+            setError('Todos os campos devem ser preenchidos!');
+            return false;
+        }
+        if (password !== passwordConfirm) {
+            setError('As palavras-passe não coincidem');
+            return false;
+        }
+        return true;
+    }
+
     const handleRegister = async () => {
+        if (!isValid()) {
+            alert(error)
+            return
+        }
+
         setLoading(true)
         try {
-            registerWithEmailAndPassword(email, password)
+            registerWithEmailAndPassword(email, password, username)
         } finally {
             setLoading(false)
         }

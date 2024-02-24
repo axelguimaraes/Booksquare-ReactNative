@@ -1,13 +1,14 @@
-import { createUserWithEmailAndPassword, signInAnonymously, signInWithEmailAndPassword } from "firebase/auth"
+import { GoogleAuthProvider, createUserWithEmailAndPassword, signInAnonymously, signInWithEmailAndPassword, signInWithPopup, updateProfile } from "firebase/auth"
 import { FIREBASE_AUTH } from "../config/firebase"
 
 const auth = FIREBASE_AUTH
+const provider = new GoogleAuthProvider()
 
 export const loginWithEmailAndPassword = async (email, password) => {
     try {
         const response = await signInWithEmailAndPassword(auth, email, password)
         return response
-    } catch(error: any) {
+    } catch (error: any) {
         console.log(error)
         alert('Erro ao tentar entrar: ' + error.message)
     }
@@ -32,11 +33,13 @@ export const loginAnonymously = async () => {
     }
 }
 
-export const registerWithEmailAndPassword = async (email, password) => {
+export const registerWithEmailAndPassword = async (email, password, displayName) => {
     try {
-        const response = await createUserWithEmailAndPassword(auth, email, password)
-        return response
-    } catch(error: any) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        const user = userCredential.user
+        await updateProfile(user, {displayName: displayName})
+        return user
+    } catch (error: any) {
         console.log(error)
         alert('Erro ao tentar registar: ' + error.message)
     }
