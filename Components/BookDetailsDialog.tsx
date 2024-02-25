@@ -57,7 +57,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onAddToCar
               <Ionicons name="add" size={24} color="white" />
               <Text style={styles.addToCartText}>
                 {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
-                  book.transactionType === TransactionType.RENT ? 'Alugar' :
+                  book.transactionType === TransactionType.RENTAL ? 'Alugar' :
                   'Trocar'
                 }
               </Text>

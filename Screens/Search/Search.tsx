@@ -6,7 +6,7 @@ import BottomBar from '../../Components/BottomBar';
 const Search = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <TopBar />
+      <TopBar navigation={navigation} />
       {/* Main Content */}
       <View style={styles.content}>
         <Text>Welcome to the Search Screen!</Text>

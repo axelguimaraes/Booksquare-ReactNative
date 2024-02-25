@@ -4,8 +4,10 @@ import RNPickerSelect from "react-native-picker-select";
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import CheckboxDropdown from '../../Components/CheckboxDropdown';
-import { TransactionType, Genre } from '../../Models/Book';
+import { TransactionType, Genre, Book } from '../../Models/Book';
 import PhotoUpload from '../../Components/PhotoUpload';
+import Accordion from 'react-native-collapsible/Accordion';
+import { getBookInfoByISBN, populateBookFromJson } from '../../Services/BooksService';
 
 const AddBook = ({ navigation }) => {
   const [title, setTitle] = useState('');
@@ -16,6 +18,8 @@ const AddBook = ({ navigation }) => {
   const [year, setYear] = useState('');
   const [author, setAuthor] = useState('');
   const [genres, setGenres] = useState([]);
+  const [isbn, setIsbn] = useState('');
+  const [activeSections, setActiveSections] = useState([]);
 
   const genreOptions = Object.values(Genre).map(genre => ({
     label: genre,
@@ -31,11 +35,33 @@ const AddBook = ({ navigation }) => {
     // Handle adding book logic here
   };
 
-  return (
-    <View style={styles.container}>
-      <TopBar navigation={navigation} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.inputContainer}>
+  const handleISBNSubmit = () => {
+    if (!isbn || isbn === '') return;
+    const book: Book = populateBookFromJson(getBookInfoByISBN(isbn))
+
+  }
+
+  const SECTIONS = [
+    {
+      title: 'ISBN',
+      content: (
+        <>
+          <TextInput
+            style={styles.input}
+            value={isbn}
+            onChangeText={setIsbn}
+            placeholder="Inserir ISBN"
+          />
+          <TouchableOpacity style={styles.confirmButton} onPress={handleISBNSubmit}>
+            <Text style={styles.confirmButtonText}>Submeter</Text>
+          </TouchableOpacity>
+        </>
+      ),
+    },
+    {
+      title: 'Adicionar Livro',
+      content: (
+        <>
           <Text style={styles.label}>Título</Text>
           <TextInput
             style={styles.input}
@@ -62,7 +88,7 @@ const AddBook = ({ navigation }) => {
           <Text style={styles.label}>Autor</Text>
           <TextInput
             style={styles.input}
-            value={title}
+            value={author}
             onChangeText={setAuthor}
             placeholder="Inserir autor"
           />
@@ -95,6 +121,40 @@ const AddBook = ({ navigation }) => {
           <TouchableOpacity style={styles.confirmButton} onPress={handleAddBook}>
             <Text style={styles.confirmButtonText}>Confirmar</Text>
           </TouchableOpacity>
+        </>
+      ),
+    },
+  ];
+
+  const renderAccordionContent = (section) => {
+    return (
+      <View style={styles.accordionContent}>{section.content}</View>
+    );
+  };
+
+  const renderAccordionHeader = (section) => {
+    return (
+      <View style={styles.accordionHeader}>
+        <Text style={styles.accordionHeaderText}>{section.title}</Text>
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <TopBar navigation={navigation} />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.inputContainer}>
+          <Text style={styles.headerTitle}>Adicionar Livro</Text>
+          <Text style={styles.headerExplanation}>Pode adicionar livros  com base em um ISBN automaticamente, ou através do formulário "Adicionar livro" abaixo.</Text>
+
+          <Accordion
+            sections={SECTIONS}
+            activeSections={activeSections}
+            renderContent={renderAccordionContent}
+            renderHeader={renderAccordionHeader}
+            onChange={(activeSections) => setActiveSections(activeSections)}
+          />
         </View>
       </ScrollView>
       <BottomBar navigation={navigation} />
@@ -110,6 +170,15 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'space-between',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  headerExplanation: {
+    fontSize: 14,
+    color: '#666',
+    paddingBottom: 20
   },
   inputContainer: {
     padding: 20
@@ -139,6 +208,35 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  separator: {
+    backgroundColor: '#8C756A',
+    height: 1,
+    width: '100%',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#F0F0F0', // Background color for accordion header
+    borderBottomWidth: 1,
+    borderBottomColor: '#CCCCCC', // Border color for accordion header
+  },
+  accordionHeaderText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333', // Text color for accordion header
+  },
+  accordionContent: {
+    padding: 15,
+    backgroundColor: '#FFFFFF', // Background color for accordion content
+  },
+  accordionContentText: {
+    fontSize: 14,
+    color: '#666666', // Text color for accordion content
   },
 });
 
