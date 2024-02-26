@@ -7,7 +7,7 @@ export const getAllBooks = (transactionType?: TransactionType): Promise<Book[]> 
   return new Promise((resolve) => {
     setTimeout(() => {
       let filteredBooks = DummyBooks;
-      
+
       if (transactionType) {
         filteredBooks = DummyBooks.filter(book => book.transactionType === transactionType);
       }
@@ -40,18 +40,34 @@ export const getBookInfoByISBN = async (isbn) => {
     return data.items[0]
   } catch (error) {
     console.error("Error fetching book info:", error);
-    return null 
+    return null
   }
 }
 
-export const populateBookFromJson = (json: any): Book => ({
-  id: 1, // You can set an ID if needed
-  title: json.volumeInfo.title,
-  description: json.volumeInfo.description,
-  price: undefined, // Set as needed
-  photos: [], // Set as needed
-  year: new Date(json.volumeInfo.publishedDate).getFullYear(),
-  author: json.volumeInfo.authors.join(', '),
-  genre: [Genre.FICTION], // Set as needed
-  transactionType: TransactionType.SALE, // Set as needed
-});
+export const populateBookFromJson = (json: any): Book => {
+  const genres: Genre[] = json.volumeInfo.categories?.map((category: string) => {
+    // Map category strings to Genre enum values, or use a default value
+    switch (category) {
+      case 'Fiction':
+        return Genre.FICTION;
+      case 'Adventure':
+        return Genre.ADVENTURE;
+      // Add more cases for other categories
+      default:
+        return Genre.OTHER;
+    }
+  }) || [Genre.OTHER]; // Default to OTHER if no categories are available
+
+  return {
+    id: 1, // You can set an ID if needed
+    isbn: parseInt(json.id, 10), // Assuming 'id' in JSON is an integer
+    title: json.volumeInfo.title,
+    description: json.volumeInfo.description,
+    price: undefined, // Set as needed
+    photos: [], // Set as needed
+    year: new Date(json.volumeInfo.publishedDate).getFullYear(),
+    author: json.volumeInfo.authors.join(', '),
+    genre: genres,
+    transactionType: TransactionType.SALE, // Set as needed
+  };
+};

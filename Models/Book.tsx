@@ -22,6 +22,7 @@ export enum TransactionType {
 
 export interface Book {
   id: number;
+  isbn: number;
   title: string;
   description: string;
   price?: number;
