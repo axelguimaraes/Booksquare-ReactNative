@@ -3,9 +3,12 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import { getBookInfoByISBN, populateBookFromJson } from '../../Services/BooksService';
+import BookDetailsDialog from '../../Components/BookDetailsDialog';
 
 const AddBook = ({ navigation }) => {
   const [isbn, setIsbn] = useState('');
+  const [showBookDialog, setShowBookDialog] = useState(false);
+  const [bookInfo, setBookInfo] = useState(null);
 
   const handleAddBook = () => {
     // Handle adding book logic here
@@ -15,14 +18,18 @@ const AddBook = ({ navigation }) => {
     if (!isbn || isbn === '') return;
     getBookInfoByISBN(isbn)
       .then(book => {
-        const newBook = populateBookFromJson(book)
-        console.log('Book information:', newBook);
+        const newBook = populateBookFromJson(book);
+        setBookInfo(newBook); // Set the book info
+        setShowBookDialog(true); // Show the book dialog
       })
       .catch(error => {
         console.error('Error:', error);
       });
   }
 
+  const handleCloseBookDialog = () => {
+    setShowBookDialog(false); // Hide the book dialog
+  };
 
   return (
     <View style={styles.container}>
@@ -45,6 +52,17 @@ const AddBook = ({ navigation }) => {
         </View>
       </ScrollView>
       <BottomBar navigation={navigation} />
+
+      {/* Book details dialog */}
+      {bookInfo && (
+        <BookDetailsDialog
+          visible={showBookDialog}
+          onClose={handleCloseBookDialog}
+          book={bookInfo}
+          onActionButton={null}
+          isToSell={true}
+        />
+      )}
     </View>
   );
 };

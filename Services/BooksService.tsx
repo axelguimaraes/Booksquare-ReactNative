@@ -1,4 +1,4 @@
-import { Book, TransactionType, Genre } from "../Models/Book";
+import { Book, TransactionType } from "../Models/Book";
 import DummyBooks from "../DummyData/Books";
 
 // Function to fetch all books from the database
@@ -29,7 +29,7 @@ export const getBookById = (id: number): Promise<Book> => {
       } else {
         reject(new Error('Book not found'));
       }
-    }, 500); // Simulate a delay of 0.5 seconds
+    }, 500);
   });
 };
 
@@ -37,6 +37,7 @@ export const getBookInfoByISBN = async (isbn) => {
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
     const data = await response.json();
+    console.log(data.items[0])
     return data.items[0]
   } catch (error) {
     console.error("Error fetching book info:", error);
@@ -45,29 +46,22 @@ export const getBookInfoByISBN = async (isbn) => {
 }
 
 export const populateBookFromJson = (json: any): Book => {
-  const genres: Genre[] = json.volumeInfo.categories?.map((category: string) => {
-    // Map category strings to Genre enum values, or use a default value
-    switch (category) {
-      case 'Fiction':
-        return Genre.FICTION;
-      case 'Adventure':
-        return Genre.ADVENTURE;
-      // Add more cases for other categories
-      default:
-        return Genre.OTHER;
-    }
-  }) || [Genre.OTHER]; // Default to OTHER if no categories are available
+  const genres: string[] = json.volumeInfo.categories || [];
+
+  const photos: string[] = json.volumeInfo.imageLinks 
+    ? [json.volumeInfo.imageLinks.thumbnail] 
+    : [];
 
   return {
-    id: 1, // You can set an ID if needed
-    isbn: parseInt(json.id, 10), // Assuming 'id' in JSON is an integer
+    id: json.volumeInfo.id,
+    isbn: parseInt(json.id, 10),
     title: json.volumeInfo.title,
     description: json.volumeInfo.description,
-    price: undefined, // Set as needed
-    photos: [], // Set as needed
+    price: undefined,
+    photos: photos,
     year: new Date(json.volumeInfo.publishedDate).getFullYear(),
     author: json.volumeInfo.authors.join(', '),
     genre: genres,
-    transactionType: TransactionType.SALE, // Set as needed
+    transactionType: undefined,
   };
 };
