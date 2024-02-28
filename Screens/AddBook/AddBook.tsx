@@ -32,7 +32,17 @@ const AddBook = ({ navigation }) => {
   }
 
   const handleISBNSubmit = () => {
-    if (!isbn || isbn === '') return;
+    if (!isbn || isbn === '') {
+      alert('Insira um ISBN válido!')
+      return
+    }
+
+    const isbnRegex = /^(?:\d{13}|\d{9}[\dXx])$/;
+    if (!isbnRegex.test(isbn)) {
+      alert('Insira um ISBN válido!')
+      return;
+    }
+
     setLoading(true)
     getBookInfoByISBN(isbn)
       .then(response => {
@@ -86,17 +96,20 @@ const AddBook = ({ navigation }) => {
   }
 
   const handleConfirmButton = () => {
+    setLoading(true);
+
     if (!bookInfo) return;
     if (transactionType === null) {
-      alert("Selecione uma opção de transação!")
-      return
+      setLoading(false);
+      alert("Selecione uma opção de transação!");
+      return;
     }
     if (transactionType === TransactionType.SALE && price == null) {
-      alert("Insira o preço para venda!")
-      return
+      setLoading(false);
+      alert("Insira o preço para venda!");
+      return;
     }
 
-    setLoading(true)
     const newBook: Book = {
       isbn: Number.parseInt(isbn),
       title: bookInfo.title,
@@ -112,15 +125,16 @@ const AddBook = ({ navigation }) => {
     addBook(newBook)
       .then((docId) => {
         console.log('Book added with ID:', docId);
-        alert('Livro adicionado com sucesso!')
-        resetValues()
+        alert('Livro adicionado com sucesso!');
+        resetValues();
+        setLoading(false); // Hide loading spinner after successful book addition
       })
       .catch(() => {
         alert('Este livro já existe na sua biblioteca.');
+        setLoading(false); // Hide loading spinner after failed book addition
       });
-
-    setLoading(false)
   }
+
 
   return (
     <View style={styles.container}>
@@ -210,6 +224,7 @@ const AddBook = ({ navigation }) => {
               value={isbn}
               onChangeText={setIsbn}
               placeholder="Inserir ISBN"
+              keyboardType='number-pad'
             />
             <TouchableOpacity style={styles.confirmButton} onPress={handleISBNSubmit}>
               {loading ? <ActivityIndicator size="small" color="white" />
