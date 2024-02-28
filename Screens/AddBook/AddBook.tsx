@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView,
+  KeyboardAvoidingView, Platform, ActivityIndicator
+} from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import { addBook, getBookInfoByISBN, populateBookFromJson } from '../../Services/BooksService';
@@ -15,17 +18,28 @@ const AddBook = ({ navigation }) => {
   const [bookInfo, setBookInfo] = useState(null);
   const [book, setBook] = useState(null);
   const [transactionType, setTransactionType] = useState<TransactionType>(null);
-  const [price, setPrice] = useState('');
+  const [price, setPrice] = useState(null);
   const [transactionTypeIndex, setTransactionTypeIndex] = useState(null)
+  const [loading, setLoading] = useState(false)
 
+  const resetValues = () => {
+    setIsbn(null)
+    setBookInfo(null)
+    setBook(null)
+    setPrice(null)
+    setTransactionType(null)
+    setTransactionTypeIndex(null)
+  }
 
   const handleISBNSubmit = () => {
     if (!isbn || isbn === '') return;
+    setLoading(true)
     getBookInfoByISBN(isbn)
       .then(response => {
         const newBook = populateBookFromJson(response);
         setBookInfo(newBook);
         setShowBookDialog(true);
+        setLoading(false)
       })
       .catch(error => {
         console.error('Error:', error);
@@ -72,7 +86,7 @@ const AddBook = ({ navigation }) => {
   }
 
   const handleConfirmButton = () => {
-    if (!bookInfo) return; 
+    if (!bookInfo) return;
     if (transactionType === null) {
       alert("Selecione uma opção de transação!")
       return
@@ -82,8 +96,8 @@ const AddBook = ({ navigation }) => {
       return
     }
 
+    setLoading(true)
     const newBook: Book = {
-      id: bookInfo.id,
       isbn: Number.parseInt(isbn),
       title: bookInfo.title,
       description: bookInfo.description,
@@ -95,8 +109,17 @@ const AddBook = ({ navigation }) => {
       currentOwner: FIREBASE_AUTH.currentUser.displayName
     };
 
-    //console.log(newBook)
     addBook(newBook)
+      .then((docId) => {
+        console.log('Book added with ID:', docId);
+        alert('Livro adicionado com sucesso!')
+        resetValues()
+      })
+      .catch(() => {
+        alert('Este livro já existe na sua biblioteca.');
+      });
+
+    setLoading(false)
   }
 
   return (
@@ -163,10 +186,13 @@ const AddBook = ({ navigation }) => {
             <View style={styles.buttonsContainer}>
               <TouchableOpacity style={styles.discardButton} onPress={handleDiscardBook}>
                 <Ionicons name="trash-outline" size={19} color="black" />
-                <Text style={styles.buttonText}>Descartar Livro</Text>
+                <Text style={styles.discardButtonText}>Descartar Livro</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmBookButton} onPress={handleConfirmButton}>
-                <Text style={styles.buttonText}>Confirmar</Text>
+                {loading ? <ActivityIndicator size="small" color="white" />
+                  :
+                  <Text style={styles.confirmButtonText}>Confirmar</Text>
+                }
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -176,7 +202,7 @@ const AddBook = ({ navigation }) => {
           <View style={styles.inputContainer}>
             <Text style={styles.headerTitle}>Adicionar Livro</Text>
             <Text style={styles.headerExplanation}>Adicione um livro facilmente usando o código ISBN
-              encontrado na capa do livro. Os códigos ISBN geralmente encontram-se junto ao código de barras</Text>
+              encontrado na capa do livro. Os códigos ISBN geralmente encontram-se junto ao código de barras.</Text>
 
             <Text style={styles.title}>ISBN</Text>
             <TextInput
@@ -186,7 +212,10 @@ const AddBook = ({ navigation }) => {
               placeholder="Inserir ISBN"
             />
             <TouchableOpacity style={styles.confirmButton} onPress={handleISBNSubmit}>
-              <Text style={styles.confirmButtonText}>Submeter</Text>
+              {loading ? <ActivityIndicator size="small" color="white" />
+                :
+                <Text style={styles.confirmButtonText}>Submeter</Text>
+              }
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -316,13 +345,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: {
+  discardButtonText: {
     color: 'black',
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 5,
   },
-
 });
 
 export default AddBook;
