@@ -1,5 +1,7 @@
 import { Book, TransactionType } from "../Models/Book";
 import DummyBooks from "../DummyData/Books";
+import { FIREBASE_DB } from "../config/firebase";
+import { collection, addDoc } from "firebase/firestore";
 
 // Function to fetch all books from the database
 export const getAllBooks = (transactionType?: TransactionType): Promise<Book[]> => {
@@ -19,7 +21,7 @@ export const getAllBooks = (transactionType?: TransactionType): Promise<Book[]> 
 
 
 // Function to fetch a single book by its ID from the database
-export const getBookById = (id: number): Promise<Book> => {
+export const getBookById = (id: string): Promise<Book> => {
   // Simulate an asynchronous call to a database
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -37,7 +39,6 @@ export const getBookInfoByISBN = async (isbn) => {
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
     const data = await response.json();
-    console.log(data.items[0])
     return data.items[0]
   } catch (error) {
     console.error("Error fetching book info:", error);
@@ -63,5 +64,19 @@ export const populateBookFromJson = (json: any): Book => {
     author: json.volumeInfo.authors.join(', '),
     genre: genres,
     transactionType: undefined,
+    currentOwner: undefined
   };
 };
+
+export const addBook = async (book: Book) => {
+  try {
+    const { id, ...bookData } = book;
+
+    const docRef = await addDoc(collection(FIREBASE_DB, "books"), bookData);
+    console.log('Book added with ID: ', docRef.id)
+    return  docRef.id;
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}

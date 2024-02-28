@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
-import { getBookInfoByISBN, populateBookFromJson } from '../../Services/BooksService';
+import { addBook, getBookInfoByISBN, populateBookFromJson } from '../../Services/BooksService';
 import BookDetailsDialog from '../../Components/BookDetailsDialog';
 import { Book, TransactionType } from '../../Models/Book';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { Ionicons } from '@expo/vector-icons';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 const AddBook = ({ navigation }) => {
   const [isbn, setIsbn] = useState('');
@@ -56,9 +57,6 @@ const AddBook = ({ navigation }) => {
       case 2:
         selectedTransactionType = TransactionType.TRADE;
         break;
-      default:
-        selectedTransactionType = TransactionType.SALE;
-        break;
     }
 
     setTransactionType(selectedTransactionType);
@@ -74,12 +72,19 @@ const AddBook = ({ navigation }) => {
   }
 
   const handleConfirmButton = () => {
-    if (!bookInfo) return; // Ensure book information is available
+    if (!bookInfo) return; 
+    if (transactionType === null) {
+      alert("Selecione uma opção de transação!")
+      return
+    }
+    if (transactionType === TransactionType.SALE && price == null) {
+      alert("Insira o preço para venda!")
+      return
+    }
 
-    // Construct the new book object
     const newBook: Book = {
       id: bookInfo.id,
-      isbn: Number.parseInt(bookInfo.isbn),
+      isbn: Number.parseInt(isbn),
       title: bookInfo.title,
       description: bookInfo.description,
       year: bookInfo.year,
@@ -87,10 +92,11 @@ const AddBook = ({ navigation }) => {
       genre: bookInfo.genre,
       transactionType: transactionType,
       price: transactionType === TransactionType.SALE ? Number.parseInt(price) : null,
-      // Add other properties as needed
+      currentOwner: FIREBASE_AUTH.currentUser.displayName
     };
 
-    console.log(book)
+    //console.log(newBook)
+    addBook(newBook)
   }
 
   return (
@@ -134,7 +140,7 @@ const AddBook = ({ navigation }) => {
               selectedIndex={transactionTypeIndex}
               onChange={(event) => {
                 setTransactionTypeIndex(event.nativeEvent.selectedSegmentIndex);
-                handleSegmentedControlChange
+                handleSegmentedControlChange(event)
               }}
             />
             {transactionType === TransactionType.SALE && (

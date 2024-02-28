@@ -15,4 +15,5 @@ export interface Book {
   author: string;
   genre: string[];
   transactionType: TransactionType
+  currentOwner: string
 }
