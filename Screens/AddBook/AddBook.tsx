@@ -118,7 +118,7 @@ const AddBook = ({ navigation }) => {
       author: bookInfo.author,
       genre: bookInfo.genre,
       transactionType: transactionType,
-      price: transactionType === TransactionType.SALE ? Number.parseInt(price) : null,
+      price: transactionType === TransactionType.SALE ? Number.parseFloat(price) : null,
       currentOwner: FIREBASE_AUTH.currentUser.displayName
     };
 
@@ -127,14 +127,28 @@ const AddBook = ({ navigation }) => {
         console.log('Book added with ID:', docId);
         alert('Livro adicionado com sucesso!');
         resetValues();
-        setLoading(false); // Hide loading spinner after successful book addition
+        setLoading(false);
       })
       .catch(() => {
         alert('Este livro já existe na sua biblioteca.');
-        setLoading(false); // Hide loading spinner after failed book addition
+        setLoading(false); 
       });
   }
 
+  const handlePriceChange = (text) => {
+    // Remove non-numeric characters and leading zeros (excluding the dot for floats)
+    let formattedText = text.replace(/[^0-9.]/g, '').replace(/^0+(\d)/, '$1');
+  
+    // Limit to two digits after the decimal point
+    const decimalIndex = formattedText.indexOf('.');
+    if (decimalIndex !== -1 && formattedText.substring(decimalIndex + 1).length > 2) {
+      formattedText = formattedText.slice(0, decimalIndex + 3);
+    }
+  
+    // Update the price state with the formatted text
+    setPrice(formattedText);
+  };
+  
 
   return (
     <View style={styles.container}>
@@ -185,8 +199,8 @@ const AddBook = ({ navigation }) => {
                 <Text style={styles.title}>Preço</Text>
                 <TextInput
                   style={styles.input}
-                  value={price}
-                  onChangeText={setPrice}
+                  value={price ? `€ ${price}` : ''}
+                  onChangeText={handlePriceChange}
                   placeholder="Insira preço"
                   keyboardType='number-pad'
                 />
