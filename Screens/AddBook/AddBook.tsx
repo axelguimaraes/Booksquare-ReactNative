@@ -117,6 +117,7 @@ const AddBook = ({ navigation }) => {
       year: bookInfo.year,
       author: bookInfo.author,
       genre: bookInfo.genre,
+      photos: bookInfo.photos,
       transactionType: transactionType,
       price: transactionType === TransactionType.SALE ? Number.parseFloat(price) : null,
       currentOwner: FIREBASE_AUTH.currentUser.displayName

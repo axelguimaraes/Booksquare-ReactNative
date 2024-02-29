@@ -9,7 +9,7 @@ export interface Book {
   title: string;
   description: string;
   price?: number;
-  photos?: string[];
+  photos: string[];
   year: number;
   author: string;
   genre: string[];

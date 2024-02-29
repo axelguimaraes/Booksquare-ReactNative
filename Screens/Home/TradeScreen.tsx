@@ -1,35 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
 import BookCard from '../../Components/BookCard';
-import { getAllBooks } from '../../Services/BooksService';
+import { getAllBooks, subscribeToBooks } from '../../Services/BooksService';
 import { Book, TransactionType } from '../../Models/Book';
 
 const TradeScreen: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch books data when the component mounts
+    setLoading(true);
     const fetchBooks = async () => {
       try {
         const fetchedBooks: Book[] = await getAllBooks(TransactionType.TRADE); 
         setBooks(fetchedBooks); 
+        setLoading(false); // Set loading to false after fetching books
+        subscribeToBooks(TransactionType.TRADE, handleBookUpdate);
       } catch (error) {
         console.error('Error fetching books:', error);
+        setLoading(false); // Set loading to false in case of error
       }
     };
 
     fetchBooks();
   }, []);
 
+  const handleBookUpdate = (updatedBooks: Book[]) => {
+    setBooks(updatedBooks);
+  };
+
   return (
-    <View style={{ flex: 1 }}>
-      <FlatList
-        data={books}
-        renderItem={({ item }) => <BookCard book={item} />}
-        keyExtractor={(item) => item.id.toString()}
-      />
+    <View>
+      {loading ? ( // Display a loading indicator while fetching books
+        <Text style={styles.message}>A carregar...</Text>
+      ) : books.length === 0 ? ( // Display a message if books list is empty
+        <Text style={styles.message}>Não existem livros disponíveis para troca.</Text>
+      ) : null}
+      {books.length > 0 && ( // Render FlatList only if there are books
+        <FlatList
+          data={books}
+          renderItem={({ item }) => <BookCard book={item} />}
+          keyExtractor={(item) => item.isbn.toString()}
+        />
+      )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  message: {
+    textAlign: 'center',
+    color: 'grey',
+    fontSize: 18,
+  },
+});
 
 export default TradeScreen;

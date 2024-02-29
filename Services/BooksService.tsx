@@ -1,22 +1,60 @@
 import { Book, TransactionType } from "../Models/Book";
-import DummyBooks from "../DummyData/Books";
 import { FIREBASE_DB } from "../config/firebase";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { collection,addDoc, getDocs, Query, query, where, CollectionReference, DocumentData, onSnapshot } from 'firebase/firestore';
 
 // Function to fetch all books from the database
-export const getAllBooks = (transactionType?: TransactionType): Promise<Book[]> => {
-  // Simulate an asynchronous call to a database
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      let filteredBooks = DummyBooks;
+export const getAllBooks = async (transactionType?: TransactionType): Promise<Book[]> => {
+  try {
+    const booksCollection = collection(FIREBASE_DB, 'books');
+    let booksQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
 
-      if (transactionType) {
-        filteredBooks = DummyBooks.filter(book => book.transactionType === transactionType);
-      }
+    if (transactionType) {
+      booksQuery = query(booksCollection, where('transactionType', '==', transactionType));
+    } else {
+      booksQuery = booksCollection;
+    }
 
-      resolve(filteredBooks);
-    }, 1000); // Simulate a delay of 1 second
+    const querySnapshot = await getDocs(booksQuery);
+    const books: Book[] = [];
+
+    querySnapshot.forEach((doc) => {
+      books.push(doc.data() as Book);
+    })
+
+    return books;
+  } catch (error) {
+    console.error('Error fetching books:', error);
+    throw error;
+  }
+};
+
+export const subscribeToBooks = (transactionType, onUpdate) => {
+  const booksRef = collection(FIREBASE_DB, 'books');
+
+  // Create a query to filter books by transaction type
+  const transactionTypeQuery = query(booksRef, where('transactionType', '==', transactionType));
+
+  // Subscribe to real-time updates
+  const unsubscribe = onSnapshot(transactionTypeQuery, (snapshot) => {
+    const updatedBooks = []; // Array to store updated books
+
+    // Iterate through each document in the snapshot
+    snapshot.forEach((doc) => {
+      // Get the book data from the document
+      const bookData = doc.data();
+      // Add the book data to the updatedBooks array
+      updatedBooks.push({
+        id: doc.id, // Assuming each book document has an 'id' field
+        ...bookData,
+      });
+    });
+
+    // Invoke the onUpdate callback with the updatedBooks array
+    onUpdate(updatedBooks);
   });
+
+  // Return the unsubscribe function to stop listening to updates
+  return unsubscribe;
 };
 
 
