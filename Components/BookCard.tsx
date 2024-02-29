@@ -41,7 +41,8 @@ const BookCard: React.FC<Props> = ({ book }) => {
         book={book}
         visible={dialogVisible}
         onClose={handleCloseDialog}
-        onAddToCart={() => console.log('Add to Cart')} // Add your logic for adding to cart here
+        onActionButton={() => console.log('Add to Cart')}
+        isToSell={false}
       />
     </>
   );

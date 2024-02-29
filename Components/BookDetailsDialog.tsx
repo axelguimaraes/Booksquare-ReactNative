@@ -7,10 +7,11 @@ interface Props {
   book: Book;
   visible: boolean;
   onClose: () => void;
-  onAddToCart: () => void;
+  onActionButton: () => void;
+  isToSell: boolean
 }
 
-const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onAddToCart }) => {
+const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionButton, isToSell }) => {
   return (
     <Modal
       visible={visible}
@@ -42,26 +43,42 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onAddToCar
               }
             </View>
             <Text style={styles.authorYear}>{book.year}, {book.author}</Text>
-            <Text style={styles.description}>{book.description}</Text>
+
+            {/* Scrollable Description */}
+            <ScrollView style={styles.descriptionContainer}>
+              <Text style={styles.description}>{book.description}</Text>
+            </ScrollView>
+
             {/* Tags */}
             <View style={styles.tagsContainer}>
               {book.genre.map((tag, index) => (
                 <Text key={index} style={styles.tag}>{tag}</Text>
               ))}
             </View>
+
             {/* IconAndTextButton (Add to cart) */}
-            <TouchableOpacity
-              style={styles.addToCartButton}
-              onPress={onAddToCart}
-            >
-              <Ionicons name="add" size={24} color="white" />
-              <Text style={styles.addToCartText}>
-                {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
-                  book.transactionType === TransactionType.RENT ? 'Alugar' :
-                  'Trocar'
-                }
-              </Text>
-            </TouchableOpacity>
+            {!isToSell ? (
+              <TouchableOpacity
+                style={styles.addToCartButton}
+                onPress={onActionButton}
+              >
+                <Ionicons name="add" size={24} color="white" />
+                <Text style={styles.addToCartText}>
+                  {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
+                    book.transactionType === TransactionType.RENTAL ? 'Alugar' :
+                      'Trocar'
+                  }
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.addToCartButton}
+                onPress={onActionButton}
+              >
+                <Text style={styles.addToCartText}>Selecionar livro</Text>
+              </TouchableOpacity>
+            )}
+
           </View>
         </View>
       </View>
@@ -90,7 +107,7 @@ const styles = StyleSheet.create({
   },
   bookImage: {
     width: 200,
-    height: 200,
+    height: 300,
     borderRadius: 8,
     marginBottom: 10,
   },
@@ -112,6 +129,10 @@ const styles = StyleSheet.create({
   authorYear: {
     fontSize: 14,
     marginBottom: 8,
+  },
+  descriptionContainer: {
+    maxHeight: 200, 
+    marginBottom: 10,
   },
   description: {
     marginBottom: 10,
