@@ -3,6 +3,8 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import BookCard from '../../Components/BookCard';
 import { getAllBooks, subscribeToBooks } from '../../Services/BooksService';
 import { Book, TransactionType } from '../../Models/Book';
+import { addToCart } from '../../Services/ShoppingCartService';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 const BuyScreen: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
@@ -12,8 +14,8 @@ const BuyScreen: React.FC = () => {
     setLoading(true)
     const fetchBooks = async () => {
       try {
-        const fetchedBooks: Book[] = await getAllBooks(TransactionType.SALE); 
-        setBooks(fetchedBooks); 
+        const fetchedBooks: Book[] = await getAllBooks(TransactionType.SALE);
+        setBooks(fetchedBooks);
         setLoading(false); // Set loading to false after fetching books
         subscribeToBooks(TransactionType.SALE, handleBookUpdate);
       } catch (error) {
@@ -29,6 +31,10 @@ const BuyScreen: React.FC = () => {
     setBooks(updatedBooks);
   };
 
+  const addBookToCart = (book: Book) => {
+    addToCart(FIREBASE_AUTH.currentUser.uid, book)
+  }
+
   return (
     <View style={styles.container}>
       {loading ? ( // Display a loading indicator while fetching books
@@ -38,7 +44,7 @@ const BuyScreen: React.FC = () => {
       ) : (
         <FlatList
           data={books}
-          renderItem={({ item }) => <BookCard book={item} />}
+          renderItem={({ item }) => <BookCard book={item} onActionButton={async () => addBookToCart(item)} />}
           keyExtractor={(item) => item.isbn.toString()}
         />
       )}

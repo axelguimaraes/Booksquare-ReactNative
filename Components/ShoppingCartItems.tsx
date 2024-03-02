@@ -1,19 +1,17 @@
 import React from 'react';
-import { View, Text, FlatList, Button, TouchableOpacity, StyleSheet } from 'react-native';
-import { CartItem } from '../Models/CartItem';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ShoppingCartItem } from '../Models/ShoppingCart';
 
 interface Props {
-  cartItems: CartItem[];
-  onRemoveItem: (itemId: number) => void;
-  onAdjustQuantity: (itemId: number, action: 'increment' | 'decrement') => void;
+  cartItems: ShoppingCartItem[];
+  onRemoveItem: (itemId: string) => void;
 }
 
-const ShoppingCartItems: React.FC<Props> = ({ cartItems, onRemoveItem, onAdjustQuantity }) => {
+const ShoppingCartItems: React.FC<Props> = ({ cartItems, onRemoveItem }) => {
   const renderHeader = () => {
     return (
       <View style={[styles.itemContainer, styles.headerContainer]}>
-        <Text style={[styles.itemText, styles.headerText]}>Qtd.</Text>
         <Text style={[styles.itemText, styles.headerText]}>Item</Text>
         <Text style={[styles.itemText, styles.headerText]}>Preço</Text>
         <View style={{ width: 80 }} />
@@ -21,13 +19,12 @@ const ShoppingCartItems: React.FC<Props> = ({ cartItems, onRemoveItem, onAdjustQ
     );
   };
 
-  const renderItem = ({ item }: { item: CartItem }) => {
+  const renderItem = ({ item }: { item: ShoppingCartItem }) => {
     return (
       <View style={styles.itemContainer}>
-        <Text style={styles.itemText}>{item.quantity}</Text>
-        <Text style={styles.itemText}>{item.title}</Text>
+        <Text style={styles.itemText}>{item.name}</Text>
         <Text style={styles.itemText}>{item.price}€</Text>
-        <TouchableOpacity onPress={() => onRemoveItem(item.id)} style={styles.removeButton}>
+        <TouchableOpacity onPress={() => onRemoveItem(item.productId)} style={styles.removeButton}>
           <Ionicons name="trash-outline" size={24} />
         </TouchableOpacity>
       </View>
@@ -40,7 +37,7 @@ const ShoppingCartItems: React.FC<Props> = ({ cartItems, onRemoveItem, onAdjustQ
       <FlatList
         data={cartItems}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.productId}
       />
     </View>
   );

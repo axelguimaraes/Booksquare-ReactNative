@@ -2,39 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ShoppingCart from '../../Components/ShoppingCartItems';
-import { CartItem } from '../../Models/CartItem';
 import { useNavigation } from '@react-navigation/native';
-import CartItemService from '../../Services/CartItemService';
+import { getCartItems, removeFromCart, clearCart } from '../../Services/ShoppingCartService';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 const ShoppingCartScreen: React.FC = () => {
     const navigation = useNavigation();
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const cartItemService = new CartItemService();
+    const [cartItems, setCartItems] = useState([]);
+    const currentUser = FIREBASE_AUTH.currentUser
 
     useEffect(() => {
-        // Load cart items when the component mounts
         loadCartItems();
     }, []);
 
-    const loadCartItems = () => {
-        setCartItems(cartItemService.getAllCartItems());
+    const loadCartItems = async () => {
+        try {
+            const items = await getCartItems(currentUser.uid);
+            setCartItems(items);
+        } catch (error) {
+            console.error('Error loading cart items:', error);
+        }
     };
 
-    const handleRemoveItem = (itemId: number) => {
-        // Delete item from cartItems state
-        setCartItems(prevCartItems => prevCartItems.filter(item => item.id !== itemId));
-        // Also delete item from CartItemService
-        cartItemService.deleteCartItem(itemId);
+    const handleRemoveItem = async (productId: string) => {
+        try {
+            await removeFromCart(currentUser.uid, productId);
+            loadCartItems();
+        } catch (error) {
+            console.error('Error removing item from cart:', error);
+        }
     };    
 
-    const handleAdjustQuantity = (itemId: number, action: 'increment' | 'decrement') => {
-        // Logic to adjust item quantity
-        // Update cartItems state accordingly
-    };
-
-    const handleEmptyCart = () => {
-        cartItemService.emptyCart();
-        setCartItems([]); // Clear cart items state
+    const handleEmptyCart = async () => {
+        try {
+            await clearCart(currentUser.uid);
+            setCartItems([]); // Clear cart items state
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+        }
     };
 
     const handleCheckout = () => {
@@ -46,7 +51,7 @@ const ShoppingCartScreen: React.FC = () => {
     };
 
     // Calculate total price of all items in cart
-    const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const totalPrice = cartItems.reduce((acc, item) => acc + item.price, 0);
 
     return (
         <View style={styles.container}>
@@ -59,7 +64,6 @@ const ShoppingCartScreen: React.FC = () => {
             <ShoppingCart
                 cartItems={cartItems}
                 onRemoveItem={handleRemoveItem}
-                onAdjustQuantity={handleAdjustQuantity}
             />
             {cartItems.length === 0 ? (
                 <Text style={styles.noItemsText}>Nenhum item adicionado</Text>

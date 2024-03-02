@@ -5,9 +5,10 @@ import { Book, TransactionType } from '../Models/Book';
 
 interface Props {
   book: Book;
+  onActionButton: () => Promise<void>
 }
 
-const BookCard: React.FC<Props> = ({ book }) => {
+const BookCard: React.FC<Props> = ({ book, onActionButton }) => {
   const [dialogVisible, setDialogVisible] = useState(false);
 
   const handleOpenDialog = () => {
@@ -17,6 +18,11 @@ const BookCard: React.FC<Props> = ({ book }) => {
   const handleCloseDialog = () => {
     setDialogVisible(false);
   };
+
+  const handleActionButton = () => {
+    onActionButton();
+    handleCloseDialog();
+  }
 
   return (
     <>
@@ -31,6 +37,7 @@ const BookCard: React.FC<Props> = ({ book }) => {
                 <Text key={index} style={styles.tag}>{tag}</Text>
               ))}
             </View>
+            <Text style={styles.currentOwner}>publicado por: {book.currentOwner}</Text>
             {book.transactionType === TransactionType.SALE && book.price &&
                 <Text style={styles.price}>Preço: {book.price}€</Text>
               }
@@ -41,7 +48,7 @@ const BookCard: React.FC<Props> = ({ book }) => {
         book={book}
         visible={dialogVisible}
         onClose={handleCloseDialog}
-        onActionButton={() => console.log('Add to Cart')}
+        onActionButton={handleActionButton}
         isToSell={false}
       />
     </>
@@ -102,6 +109,10 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     borderRadius: 8,
   },
+  currentOwner: {
+    color: 'grey',
+    fontStyle: 'italic'
+  }
 });
 
 export default BookCard;
