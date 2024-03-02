@@ -1,5 +1,5 @@
-import { collection, addDoc, getDocs, query, where, updateDoc } from 'firebase/firestore';
-import { FIREBASE_DB } from '../config/firebase';
+import { collection, addDoc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore';
+import { FIREBASE_AUTH, FIREBASE_DB } from '../config/firebase';
 import { ShoppingCartItem } from '../Models/ShoppingCart';
 import { Book } from '../Models/Book';
 import uuid from 'react-native-uuid';
@@ -8,7 +8,8 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
     try {
         const item: ShoppingCartItem = {
             productId: uuid.v4().toString(), 
-            price: book.price 
+            price: book.price,
+            name: book.title
         };
 
         const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
@@ -84,3 +85,38 @@ export const getCartItems = async (userId: string): Promise<ShoppingCartItem[]> 
         throw error;
     }
 };
+
+export const getCartItemCount = async (userId: string): Promise<number> => {
+    try {
+        const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
+        const cartQuery = query(cartCollection, where('userId', '==', userId));
+        const querySnapshot = await getDocs(cartQuery);
+
+        if (!querySnapshot.empty) {
+            const cartData = querySnapshot.docs[0].data();
+            const items: ShoppingCartItem[] = cartData.items || [];
+            return items.length;
+        }
+
+        return 0; // Return 0 if cart is empty
+    } catch (error) {
+        console.error('Error fetching cart item count:', error);
+        throw error;
+    }
+};
+
+export const listenForCartChanges = (updateCallback) => {
+    const currentUser = FIREBASE_AUTH.currentUser
+    const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
+    const cartQuery = query(cartCollection, where('userId', '==', currentUser.uid));
+    
+    // Set up real-time listener
+    const unsubscribe = onSnapshot(cartQuery, async (snapshot) => {
+      // Fetch updated cart item count
+      const count = await getCartItemCount(currentUser.uid);
+      updateCallback(count);
+    });
+  
+    // Return the unsubscribe function to stop listening
+    return unsubscribe;
+  };
