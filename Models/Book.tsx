@@ -15,4 +15,5 @@ export interface Book {
   genre: string[];
   transactionType: TransactionType
   currentOwner: string
+  rentalPricePerDay?: number
 }

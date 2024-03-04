@@ -3,8 +3,13 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import BookCard from '../../Components/BookCard';
 import { getAllBooks, subscribeToBooks } from '../../Services/BooksService';
 import { Book, TransactionType } from '../../Models/Book';
+import { NavigationProp } from '@react-navigation/native';
 
-const RentScreen: React.FC = () => {
+interface RentScreenProps {
+  navigation: NavigationProp<any>;
+}
+
+const RentScreen: React.FC<RentScreenProps> = ({ navigation }) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,6 +34,10 @@ const RentScreen: React.FC = () => {
     setBooks(updatedBooks);
   };
 
+  const handleActionButton = (item: Book) => {
+    navigation.navigate('RentForm', { book: item });
+  }
+
   return (
     <View>
       {loading ? ( // Display a loading indicator while fetching books
@@ -40,7 +49,7 @@ const RentScreen: React.FC = () => {
       ) : (
         <FlatList
           data={books}
-          renderItem={({ item }) => <BookCard book={item} />}
+          renderItem={({ item }) => <BookCard book={item} onActionButton={() => handleActionButton(item)} />}
           keyExtractor={(item) => item.isbn.toString()}
         />
       )}

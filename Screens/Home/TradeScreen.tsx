@@ -12,8 +12,8 @@ const TradeScreen: React.FC = () => {
     setLoading(true);
     const fetchBooks = async () => {
       try {
-        const fetchedBooks: Book[] = await getAllBooks(TransactionType.TRADE); 
-        setBooks(fetchedBooks); 
+        const fetchedBooks: Book[] = await getAllBooks(TransactionType.TRADE);
+        setBooks(fetchedBooks);
         setLoading(false); // Set loading to false after fetching books
         subscribeToBooks(TransactionType.TRADE, handleBookUpdate);
       } catch (error) {
@@ -29,6 +29,10 @@ const TradeScreen: React.FC = () => {
     setBooks(updatedBooks);
   };
 
+  const handleActionButton = () => {
+    alert("Feature not yet implemented");
+  }
+
   return (
     <View>
       {loading ? ( // Display a loading indicator while fetching books
@@ -39,7 +43,7 @@ const TradeScreen: React.FC = () => {
       {books.length > 0 && ( // Render FlatList only if there are books
         <FlatList
           data={books}
-          renderItem={({ item }) => <BookCard book={item} />}
+          renderItem={({ item }) => <BookCard book={item} onActionButton={handleActionButton} />}
           keyExtractor={(item) => item.isbn.toString()}
         />
       )}

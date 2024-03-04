@@ -88,11 +88,7 @@ const AddBook = ({ navigation }) => {
 
 
   const handleDiscardBook = () => {
-    setBook(null)
-    setPrice(null)
-    setIsbn(null)
-    setTransactionType(null)
-    setTransactionTypeIndex(null)
+    resetValues()
   }
 
   const handleConfirmButton = () => {

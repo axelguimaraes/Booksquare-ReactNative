@@ -10,6 +10,7 @@ import UserProfileScreen from '../Screens/Profile/Profile';
 import AddBook from '../Screens/AddBook/AddBook';
 import ShoppingCartScreen from '../Screens/Shopping/ShoppingCartScreen';
 import ChatScreen from '../Screens/Messages/ChatScreen';
+import RentForm from '../Screens/Rent/RentForm';
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,7 @@ export default function UserStack() {
         <Stack.Screen name="Sell" component={AddBook} options={{ headerShown: false }} />
         <Stack.Screen name="ShoppingCartScreen" component={ShoppingCartScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="RentForm" component={RentForm} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
