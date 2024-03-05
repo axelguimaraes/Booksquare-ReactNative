@@ -5,19 +5,31 @@ import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import { useNavigation } from '@react-navigation/native';
 import DatePicker from '@react-native-community/datetimepicker';
+import { rentBook } from '../../Services/BooksService';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 const RentForm = ({ route }) => {
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const { book } = route.params
     const navigation = useNavigation()
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     const handleDiscardBook = () => {
         navigation.goBack()
     };
 
     const handleConfirmButton = () => {
-        // Handle confirm button logic here
+        rentBook({ bookId: book.id, userId: FIREBASE_AUTH.currentUser.uid, date: selectedDate })
+            .then(() => {
+                alert('Livro alugado com sucesso!');
+                navigation.goBack()
+            })
+    };
+
+
+    const toggleDatePicker = () => {
+        setShowDatePicker(!showDatePicker);
     };
 
     return (
@@ -53,10 +65,22 @@ const RentForm = ({ route }) => {
                     </View>
 
                     <Text style={styles.title}>Alugar até:</Text>
-                    <DatePicker
-                        value={selectedDate}
-                        onChange={(event, date) => setSelectedDate(date)}
-                    />
+                    <TouchableOpacity onPress={toggleDatePicker}>
+                        <View style={styles.valueBox}>
+                            <Text style={styles.valueBoxContent}>{selectedDate ? selectedDate.toLocaleDateString() : 'Selecione uma data'}</Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    {showDatePicker && (
+                        <DatePicker
+                            value={selectedDate}
+                            onChange={(event, date) => {
+                                setSelectedDate(date);
+                                toggleDatePicker(); // Close date picker after selecting a date
+                            }}
+                            locale="pt-BR" // Set the locale to Portuguese (Brazil)
+                        />
+                    )}
                 </View>
                 <KeyboardAvoidingView
                     style={{ flex: 1 }}

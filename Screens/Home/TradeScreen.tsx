@@ -9,7 +9,7 @@ const TradeScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(true)
     const fetchBooks = async () => {
       try {
         const fetchedBooks: Book[] = await getAllBooks(TransactionType.TRADE);
@@ -34,13 +34,12 @@ const TradeScreen: React.FC = () => {
   }
 
   return (
-    <View>
+    <View style={styles.container}>
       {loading ? ( // Display a loading indicator while fetching books
         <Text style={styles.message}>A carregar...</Text>
       ) : books.length === 0 ? ( // Display a message if books list is empty
-        <Text style={styles.message}>Não existem livros disponíveis para troca.</Text>
-      ) : null}
-      {books.length > 0 && ( // Render FlatList only if there are books
+        <Text style={styles.message}>Sem livros disponíveis para venda.</Text>
+      ) : (
         <FlatList
           data={books}
           renderItem={({ item }) => <BookCard book={item} onActionButton={handleActionButton} />}
@@ -54,8 +53,6 @@ const TradeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   message: {
     textAlign: 'center',

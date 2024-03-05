@@ -39,7 +39,7 @@ const RentScreen: React.FC<RentScreenProps> = ({ navigation }) => {
   }
 
   return (
-    <View>
+    <View style={styles.container}>
       {loading ? ( // Display a loading indicator while fetching books
         <Text style={styles.message}>A carregar...</Text>
       ) : books.length === 0 ? ( // Display a message if books list is empty
@@ -60,8 +60,6 @@ const RentScreen: React.FC<RentScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   message: {
     textAlign: 'center',
