@@ -15,4 +15,12 @@ export interface Book {
   genre: string[];
   transactionType: TransactionType
   currentOwner: string
+  isVisible: boolean,
+
+  rentalPricePerDay?: number
+  isRentedTo: string,
+  rentStartDate?: Date,
+  rentEndDate?: Date,
+
+  isTradedWith: string
 }

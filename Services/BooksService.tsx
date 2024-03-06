@@ -1,6 +1,6 @@
 import { Book, TransactionType } from "../Models/Book";
 import { FIREBASE_DB } from "../config/firebase";
-import { collection,addDoc, getDocs, Query, query, where, CollectionReference, DocumentData, onSnapshot } from 'firebase/firestore';
+import { collection,addDoc, getDocs, Query, query, where, CollectionReference, DocumentData, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 // Function to fetch all books from the database
 export const getAllBooks = async (transactionType?: TransactionType): Promise<Book[]> => {
@@ -9,17 +9,18 @@ export const getAllBooks = async (transactionType?: TransactionType): Promise<Bo
     let booksQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
 
     if (transactionType) {
-      booksQuery = query(booksCollection, where('transactionType', '==', transactionType));
+      booksQuery = query(booksCollection, where('transactionType', '==', transactionType), where('isVisible', '==', true));
     } else {
-      booksQuery = booksCollection;
+      booksQuery = query(booksCollection, where('isVisible', '==', true));
     }
 
     const querySnapshot = await getDocs(booksQuery);
     const books: Book[] = [];
-
+    
     querySnapshot.forEach((doc) => {
       books.push(doc.data() as Book);
-    })
+    });
+
 
     return books;
   } catch (error) {
@@ -32,7 +33,7 @@ export const subscribeToBooks = (transactionType, onUpdate) => {
   const booksRef = collection(FIREBASE_DB, 'books');
 
   // Create a query to filter books by transaction type
-  const transactionTypeQuery = query(booksRef, where('transactionType', '==', transactionType));
+  const transactionTypeQuery = query(booksRef, where('transactionType', '==', transactionType), where('isVisible', '==', true));
 
   // Subscribe to real-time updates
   const unsubscribe = onSnapshot(transactionTypeQuery, (snapshot) => {
@@ -85,8 +86,11 @@ export const populateBookFromJson = (json: any): Book => {
     year: new Date(json.volumeInfo.publishedDate).getFullYear(),
     author: json.volumeInfo.authors.join(', '),
     genre: genres,
-    transactionType: undefined,
-    currentOwner: undefined
+    transactionType: null,
+    currentOwner: null,
+    isVisible: true,
+    isRentedTo: null,
+    isTradedWith: null
   };
 };
 
@@ -105,3 +109,35 @@ export const addBook = async (book: Book) => {
   const docRef = await addDoc(collection(FIREBASE_DB, 'books'), book);
   return docRef.id;
 }
+
+export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
+  try {
+    const bookRef = doc(FIREBASE_DB, 'books', bookId);
+
+    const bookSnapshot = await getDoc(bookRef);
+
+    if (!bookSnapshot.exists()) {
+      throw new Error('Book not found');
+    }
+
+    const bookData = bookSnapshot.data() as Book;
+
+    if (bookData.isRentedTo) {
+      throw new Error('Book is already rented');
+    }
+    
+
+    await updateDoc(bookRef, {
+      isRentedTo: userId, // Set the user ID who is renting the book
+      isVisible: false, // Mark the book as unavailable for rent
+      rentStartDate: new Date(), // Set the rent start date to the current date
+      rentEndDate: date, // Reset the rent end date
+    });
+
+
+    console.log('Book rented successfully');
+  } catch (error) {
+    console.error('Error renting book:', error);
+    throw error;
+  }
+};

@@ -20,6 +20,7 @@ const AddBook = ({ navigation }) => {
   const [transactionType, setTransactionType] = useState<TransactionType>(null);
   const [price, setPrice] = useState(null);
   const [transactionTypeIndex, setTransactionTypeIndex] = useState(null)
+  const [rentalPricePerDay, setRentalPricePerDay] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const resetValues = () => {
@@ -29,6 +30,7 @@ const AddBook = ({ navigation }) => {
     setPrice(null)
     setTransactionType(null)
     setTransactionTypeIndex(null)
+    setRentalPricePerDay(null)
   }
 
   const handleISBNSubmit = () => {
@@ -88,11 +90,7 @@ const AddBook = ({ navigation }) => {
 
 
   const handleDiscardBook = () => {
-    setBook(null)
-    setPrice(null)
-    setIsbn(null)
-    setTransactionType(null)
-    setTransactionTypeIndex(null)
+    resetValues()
   }
 
   const handleConfirmButton = () => {
@@ -120,7 +118,11 @@ const AddBook = ({ navigation }) => {
       photos: bookInfo.photos,
       transactionType: transactionType,
       price: transactionType === TransactionType.SALE ? Number.parseFloat(price) : null,
-      currentOwner: FIREBASE_AUTH.currentUser.displayName
+      rentalPricePerDay: transactionType === TransactionType.RENTAL ? Number.parseFloat(rentalPricePerDay) : null,
+      currentOwner: FIREBASE_AUTH.currentUser.displayName,
+      isVisible: true,
+      isRentedTo: null,
+      isTradedWith: null
     };
 
     addBook(newBook)
@@ -132,24 +134,40 @@ const AddBook = ({ navigation }) => {
       })
       .catch(() => {
         alert('Este livro já existe na sua biblioteca.');
-        setLoading(false); 
+        setLoading(false);
       });
+
+    resetValues()
   }
 
   const handlePriceChange = (text) => {
     // Remove non-numeric characters and leading zeros (excluding the dot for floats)
     let formattedText = text.replace(/[^0-9.]/g, '').replace(/^0+(\d)/, '$1');
-  
+
     // Limit to two digits after the decimal point
     const decimalIndex = formattedText.indexOf('.');
     if (decimalIndex !== -1 && formattedText.substring(decimalIndex + 1).length > 2) {
       formattedText = formattedText.slice(0, decimalIndex + 3);
     }
-  
+
     // Update the price state with the formatted text
     setPrice(formattedText);
   };
-  
+
+  const handlePricePerDayChange = (text) => {
+    // Remove non-numeric characters and leading zeros (excluding the dot for floats)
+    let formattedText = text.replace(/[^0-9.]/g, '').replace(/^0+(\d)/, '$1');
+
+    // Limit to two digits after the decimal point
+    const decimalIndex = formattedText.indexOf('.');
+    if (decimalIndex !== -1 && formattedText.substring(decimalIndex + 1).length > 2) {
+      formattedText = formattedText.slice(0, decimalIndex + 3);
+    }
+
+    // Update the price state with the formatted text
+    setRentalPricePerDay(formattedText);
+  };
+
 
   return (
     <View style={styles.container}>
@@ -207,7 +225,21 @@ const AddBook = ({ navigation }) => {
                 />
               </View>
             )}
+
+            {transactionType === TransactionType.RENTAL && (
+              <View style={styles.priceInput}>
+                <Text style={styles.title}>Preço por dia</Text>
+                <TextInput
+                  style={styles.input}
+                  value={rentalPricePerDay ? `€ ${rentalPricePerDay}` : ''}
+                  onChangeText={handlePricePerDayChange}
+                  placeholder="Insira preço diário de aluguer"
+                  keyboardType='number-pad'
+                />
+              </View>
+            )}
           </View>
+
           <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}

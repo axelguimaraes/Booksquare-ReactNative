@@ -5,7 +5,7 @@ import { Book, TransactionType } from '../Models/Book';
 
 interface Props {
   book: Book;
-  onActionButton: () => Promise<void>
+  onActionButton: () => Promise<void> | void
 }
 
 const BookCard: React.FC<Props> = ({ book, onActionButton }) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import BookCard from '../../Components/BookCard';
 import { getAllBooks, subscribeToBooks } from '../../Services/BooksService';
 import { Book, TransactionType } from '../../Models/Book';
@@ -9,11 +9,11 @@ const TradeScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(true)
     const fetchBooks = async () => {
       try {
-        const fetchedBooks: Book[] = await getAllBooks(TransactionType.TRADE); 
-        setBooks(fetchedBooks); 
+        const fetchedBooks: Book[] = await getAllBooks(TransactionType.TRADE);
+        setBooks(fetchedBooks);
         setLoading(false); // Set loading to false after fetching books
         subscribeToBooks(TransactionType.TRADE, handleBookUpdate);
       } catch (error) {
@@ -29,29 +29,43 @@ const TradeScreen: React.FC = () => {
     setBooks(updatedBooks);
   };
 
+  const handleActionButton = () => {
+    alert("Feature not yet implemented");
+  }
+
   return (
-    <View>
-      {loading ? ( // Display a loading indicator while fetching books
-        <Text style={styles.message}>A carregar...</Text>
-      ) : books.length === 0 ? ( // Display a message if books list is empty
-        <Text style={styles.message}>Não existem livros disponíveis para troca.</Text>
-      ) : null}
-      {books.length > 0 && ( // Render FlatList only if there are books
-        <FlatList
-          data={books}
-          renderItem={({ item }) => <BookCard book={item} />}
-          keyExtractor={(item) => item.isbn.toString()}
-        />
+    <>
+      {loading ? ( // Display loading indicator while fetching books
+        <View style={styles.containerEmpty}>
+          <ActivityIndicator size="large" color="grey" />
+        </View>
+      ) : (
+        <View style={styles.container}>
+          {books.length === 0 ? (
+            <View style={styles.containerEmpty}>
+              <Text style={styles.message}>Sem livros disponíveis para trocar.</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={books}
+              renderItem={({ item }) => <BookCard book={item} onActionButton={handleActionButton} />}
+              keyExtractor={(item) => item.isbn.toString()}
+            />
+          )}
+        </View>
       )}
-    </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+  },
+  containerEmpty: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center'
   },
   message: {
     textAlign: 'center',
