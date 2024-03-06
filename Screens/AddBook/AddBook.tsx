@@ -30,6 +30,7 @@ const AddBook = ({ navigation }) => {
     setPrice(null)
     setTransactionType(null)
     setTransactionTypeIndex(null)
+    setRentalPricePerDay(null)
   }
 
   const handleISBNSubmit = () => {
@@ -135,6 +136,8 @@ const AddBook = ({ navigation }) => {
         alert('Este livro já existe na sua biblioteca.');
         setLoading(false);
       });
+
+    resetValues()
   }
 
   const handlePriceChange = (text) => {
