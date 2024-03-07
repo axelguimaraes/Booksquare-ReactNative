@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, TextInput } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, TextInput, Image as RNImage } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import { useNavigation } from '@react-navigation/native';
-import DatePicker from '@react-native-community/datetimepicker';
-import { rentBook } from '../../Services/BooksService';
-import { FIREBASE_AUTH } from '../../config/firebase';
+import * as ImagePicker from 'expo-image-picker';
+import { ImagePickerResult } from 'expo-image-picker';
 
 const TradeForm = ({ route }) => {
     const [loading, setLoading] = useState(false);
     const { book } = route.params
     const navigation = useNavigation()
     const [bookToTradeISBN, setBookToTradeISBN] = useState(null)
+    const [isBarcodeScannerVisible, setIsBarcodeScannerVisible] = useState(false);
+    const [selectedImages, setSelectedImages] = useState<string[]>([]);
+
+    useEffect(() => {
+        (async () => {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Sorry, we need media library permissions to make this work!');
+            }
+        })();
+    }, []);
 
     const handleDiscardBook = () => {
         navigation.goBack()
@@ -27,7 +37,35 @@ const TradeForm = ({ route }) => {
         }
         setLoading(false);
     };
-    
+
+    const handleBarcodeButton = () => {
+        // setIsBarcodeScannerVisible(true);
+        alert('Função não implementada')
+    };
+
+    const handlePhotosButton = async () => {
+        let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            aspect: [4, 3],
+            quality: 1,
+            allowsMultipleSelection: true,
+        });
+
+        if (!result.canceled) {
+            const successResult = result as ImagePicker.ImagePickerSuccessResult;
+            const selectedAssets = successResult.assets;
+            if (selectedAssets.length > 0) {
+                const selectedImages = selectedAssets.map(asset => asset.uri);
+                setSelectedImages(selectedImages); // Store selected image URIs
+            }
+        }
+    };
+
+    const handleRemoveImage = (index: number) => {
+        const updatedImages = [...selectedImages];
+        updatedImages.splice(index, 1);
+        setSelectedImages(updatedImages);
+    };
 
     const checkISBN = (): boolean => {
         if (!bookToTradeISBN || bookToTradeISBN === '') {
@@ -75,13 +113,39 @@ const TradeForm = ({ route }) => {
                     </View>
 
                     <Text style={styles.title}>Trocar por:</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={bookToTradeISBN}
-                        onChangeText={setBookToTradeISBN}
-                        placeholder="Inserir ISBN"
-                        keyboardType='number-pad'
-                    />
+                    <View style={styles.tradeBy}>
+                        <TextInput
+                            style={styles.input}
+                            value={bookToTradeISBN}
+                            onChangeText={setBookToTradeISBN}
+                            placeholder="Inserir ISBN"
+                            keyboardType='number-pad'
+                        />
+                        <TouchableOpacity style={{ paddingLeft: 10 }} onPress={handleBarcodeButton} >
+                            <Ionicons name="barcode-outline" size={35} color="black" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <Text style={styles.title}>Fotos do livro para trocar:</Text>
+                    {selectedImages.length === 0 ? (
+                        <TouchableOpacity style={styles.photosButton} onPress={handlePhotosButton}>
+                            <Ionicons name='camera-outline' size={20} color="white"></Ionicons>
+                            <Text style={styles.photosButtonText}>Carregar fotos</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={styles.selectedImagesContainer}>
+                            {selectedImages.map((imageUri, index) => (
+                                <View key={index} style={styles.selectedImageContainer}>
+                                    <RNImage source={{ uri: imageUri }} style={styles.selectedImage} />
+                                    <TouchableOpacity onPress={() => handleRemoveImage(index)} style={styles.deleteButton}>
+                                        <Ionicons name="trash-outline" size={24} color="white" />
+                                    </TouchableOpacity>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+
+
                 </View>
                 <KeyboardAvoidingView
                     style={{ flex: 1 }}
@@ -102,6 +166,9 @@ const TradeForm = ({ route }) => {
                 </KeyboardAvoidingView>
             </ScrollView>
             <BottomBar navigation={navigation} />
+            {/* {isBarcodeScannerVisible && (
+                <BarcodeScanner/>
+            )} */}
         </View>
     );
 };
@@ -130,7 +197,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     inputContainer: {
-        padding: 20
+        flex: 1,
+        marginRight: 10,
     },
     valueBox: {
         borderWidth: 1,
@@ -153,12 +221,12 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     input: {
-        height: 40,
+        flex: 1,
+        height: 35,
         borderColor: '#ccc',
         borderWidth: 1,
         borderRadius: 5,
         paddingHorizontal: 10,
-        marginBottom: 10,
     },
     confirmButton: {
         backgroundColor: '#8C756A',
@@ -220,6 +288,51 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: 5,
+    },
+    tradeBy: {
+        flex: 1,
+        width: '100%',
+        justifyContent: 'space-between',
+        flexDirection: 'row',
+        paddingBottom: 10
+    },
+    photosButton: {
+        backgroundColor: '#8C756A',
+        borderRadius: 5,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row'
+    },
+    photosButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+        paddingLeft: 15
+    },
+    selectedImagesContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    selectedImageContainer: {
+        position: 'relative',
+        marginRight: 10,
+        marginBottom: 10,
+    },
+    selectedImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 5,
+    },
+    deleteButton: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        backgroundColor: 'grey',
+        borderRadius: 10,
+        padding: 5,
     },
 });
 
