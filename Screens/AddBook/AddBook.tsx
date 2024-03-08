@@ -121,8 +121,6 @@ const AddBook = ({ navigation }) => {
       rentalPricePerDay: transactionType === TransactionType.RENTAL ? Number.parseFloat(rentalPricePerDay) : null,
       currentOwner: FIREBASE_AUTH.currentUser.displayName,
       isVisible: true,
-      isRentedTo: null,
-      isTradedWith: null
     };
 
     addBook(newBook)

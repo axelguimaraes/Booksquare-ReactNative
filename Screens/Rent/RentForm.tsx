@@ -20,7 +20,11 @@ const RentForm = ({ route }) => {
     };
 
     const handleConfirmButton = () => {
-        rentBook({ bookId: book.id, userId: FIREBASE_AUTH.currentUser.uid, date: selectedDate })
+        rentBook({
+            bookId: book.id,
+            userId: FIREBASE_AUTH.currentUser.uid,
+            date: selectedDate
+        })
             .then(() => {
                 alert('Livro alugado com sucesso!');
                 navigation.goBack()

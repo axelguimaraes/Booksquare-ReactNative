@@ -6,6 +6,8 @@ import BottomBar from '../../Components/BottomBar';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePickerResult } from 'expo-image-picker';
+import { tradeBook } from '../../Services/BooksService';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 const TradeForm = ({ route }) => {
     const [loading, setLoading] = useState(false);
@@ -35,6 +37,24 @@ const TradeForm = ({ route }) => {
             setLoading(false); // Reset loading state
             return;
         }
+
+        if (selectedImages.length == 0) {
+            alert('Insira fotos do livro a trocar')
+            setLoading(false)
+            return;
+        }
+
+        tradeBook({
+            bookId: book.id,
+            userId: FIREBASE_AUTH.currentUser.uid,
+            isbn: bookToTradeISBN,
+            tradedByPhotos: selectedImages
+        }).then(() => {
+            alert('Livro trocado com sucesso!')
+            setLoading(false)
+            navigation.goBack()
+        })
+
         setLoading(false);
     };
 

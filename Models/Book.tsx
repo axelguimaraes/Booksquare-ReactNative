@@ -4,11 +4,24 @@ export enum TransactionType {
   TRADE = 'Troca',
 }
 
+export interface Rented {
+  isRentedTo: string,
+  rentStartDate?: Date,
+  rentEndDate?: Date,
+}
+
+export interface Traded {
+  isTradedWith: string
+  tradedByISBN: number
+  tradedByPhotos: string[]
+}
+
 export interface Book {
   isbn: number;
   title: string;
   description: string;
   price?: number;
+  rentalPricePerDay?: number
   photos: string[];
   year: number;
   author: string;
@@ -17,10 +30,6 @@ export interface Book {
   currentOwner: string
   isVisible: boolean,
 
-  rentalPricePerDay?: number
-  isRentedTo: string,
-  rentStartDate?: Date,
-  rentEndDate?: Date,
-
-  isTradedWith: string
+  rented?: Rented
+  traded?: Traded
 }
