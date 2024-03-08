@@ -1,4 +1,4 @@
-import { GoogleAuthProvider, createUserWithEmailAndPassword, signInAnonymously, signInWithEmailAndPassword, signInWithPopup, updateProfile } from "firebase/auth"
+import { GoogleAuthProvider, createUserWithEmailAndPassword, signInAnonymously, signInWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { FIREBASE_AUTH } from "../config/firebase"
 
 const auth = FIREBASE_AUTH
