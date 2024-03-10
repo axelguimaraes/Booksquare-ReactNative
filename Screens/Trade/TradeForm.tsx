@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImagePickerResult } from 'expo-image-picker';
 import { tradeBook } from '../../Services/BooksService';
 import { FIREBASE_AUTH } from '../../config/firebase';
+import uploadMedia from '../../Utils/uploadMedia';
 
 const TradeForm = ({ route }) => {
     const [loading, setLoading] = useState(false);
@@ -30,33 +31,41 @@ const TradeForm = ({ route }) => {
         navigation.goBack()
     };
 
-    const handleConfirmButton = () => {
+    const handleConfirmButton = async () => {
         setLoading(true);
+    
         if (!checkISBN()) {
             alert('Insira um ISBN válido');
-            setLoading(false); // Reset loading state
+            setLoading(false);
             return;
         }
-
-        if (selectedImages.length == 0) {
-            alert('Insira fotos do livro a trocar')
-            setLoading(false)
+    
+        if (selectedImages.length === 0) {
+            alert('Insira fotos do livro a trocar');
+            setLoading(false);
             return;
         }
-
-        tradeBook({
-            bookId: book.id,
-            userId: FIREBASE_AUTH.currentUser.uid,
-            isbn: bookToTradeISBN,
-            tradedByPhotos: selectedImages
-        }).then(() => {
-            alert('Livro trocado com sucesso!')
-            setLoading(false)
-            navigation.goBack()
-        })
-
-        setLoading(false);
+    
+        try {
+            const downloadURLs = await uploadMedia(selectedImages);
+    
+            await tradeBook({
+                bookId: book.id,
+                userId: FIREBASE_AUTH.currentUser.uid,
+                isbn: bookToTradeISBN,
+                tradedByPhotos: downloadURLs
+            });
+    
+            setLoading(false);
+            alert('Livro trocado com sucesso!');
+            navigation.goBack();
+        } catch (error) {
+            console.error('Error uploading images:', error);
+            alert('Erro ao carregar as imagens: ' + error.message);
+            setLoading(false);
+        }
     };
+    
 
     const handleBarcodeButton = () => {
         // setIsBarcodeScannerVisible(true);

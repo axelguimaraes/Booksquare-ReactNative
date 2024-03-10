@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.1.1",
+    "@react-native-async-storage/async-storage": "1.21.0",
     "@react-native-community/datetimepicker": "7.6.1",
     "@react-native-community/segmented-control": "^2.2.2",
+    "@react-native-firebase/app": "^19.0.1",
+    "@react-native-firebase/storage": "^19.0.1",
     "@react-native-picker/picker": "2.6.1",
     "@react-native-segmented-control/segmented-control": "2.4.1",
     "@react-navigation/material-top-tabs": "^6.6.5",
@@ -41,7 +44,7 @@
     "react-native-uuid": "^2.0.1",
     "react-native-web": "~0.19.6",
     "typescript": "^5.3.0",
-    "@react-native-async-storage/async-storage": "1.21.0"
+    "expo-file-system": "~16.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

@@ -3,6 +3,14 @@ import 'dotenv/config';
 
 export default {
   "expo": {
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ]
+    ],
     "name": "Booksquare",
     "slug": "Booksquare",
     "version": "1.0.0",
