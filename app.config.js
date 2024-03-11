@@ -9,8 +9,16 @@ export default {
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
       ]
-    ],
+    ],    
     "name": "Booksquare",
     "slug": "Booksquare",
     "version": "1.0.0",

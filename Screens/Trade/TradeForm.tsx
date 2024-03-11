@@ -9,6 +9,9 @@ import { ImagePickerResult } from 'expo-image-picker';
 import { tradeBook } from '../../Services/BooksService';
 import { FIREBASE_AUTH } from '../../config/firebase';
 import uploadMedia from '../../Utils/uploadMedia';
+import { CameraView, useCameraPermissions } from 'expo-camera/next';
+import { CameraType } from 'expo-camera/build/Camera.types';
+import BarcodeScanner from '../../Utils/useBarcodeScanner';
 
 const TradeForm = ({ route }) => {
     const [loading, setLoading] = useState(false);
@@ -17,6 +20,7 @@ const TradeForm = ({ route }) => {
     const [bookToTradeISBN, setBookToTradeISBN] = useState(null)
     const [isBarcodeScannerVisible, setIsBarcodeScannerVisible] = useState(false);
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
+    const [permission, requestPermission] = useCameraPermissions();
 
     useEffect(() => {
         (async () => {
@@ -27,35 +31,42 @@ const TradeForm = ({ route }) => {
         })();
     }, []);
 
+
+    const handleCloseScanner = () => {
+        setIsBarcodeScannerVisible(false);
+        pausePreview()
+        useCameraPermissions()[0]
+    };
+
     const handleDiscardBook = () => {
         navigation.goBack()
     };
 
     const handleConfirmButton = async () => {
         setLoading(true);
-    
+
         if (!checkISBN()) {
             alert('Insira um ISBN válido');
             setLoading(false);
             return;
         }
-    
+
         if (selectedImages.length === 0) {
             alert('Insira fotos do livro a trocar');
             setLoading(false);
             return;
         }
-    
+
         try {
             const downloadURLs = await uploadMedia(selectedImages);
-    
+
             await tradeBook({
                 bookId: book.id,
                 userId: FIREBASE_AUTH.currentUser.uid,
                 isbn: bookToTradeISBN,
                 tradedByPhotos: downloadURLs
             });
-    
+
             setLoading(false);
             alert('Livro trocado com sucesso!');
             navigation.goBack();
@@ -65,11 +76,10 @@ const TradeForm = ({ route }) => {
             setLoading(false);
         }
     };
-    
+
 
     const handleBarcodeButton = () => {
-        // setIsBarcodeScannerVisible(true);
-        alert('Função não implementada')
+        setIsBarcodeScannerVisible(true);
     };
 
     const handlePhotosButton = async () => {
@@ -85,7 +95,7 @@ const TradeForm = ({ route }) => {
             const selectedAssets = successResult.assets;
             if (selectedAssets.length > 0) {
                 const selectedImages = selectedAssets.map(asset => asset.uri);
-                setSelectedImages(selectedImages); // Store selected image URIs
+                setSelectedImages(selectedImages);
             }
         }
     };
@@ -108,99 +118,140 @@ const TradeForm = ({ route }) => {
         return true
     }
 
+    const handleBarCodeScanned = (data) => {
+        setBookToTradeISBN(data);
+        setIsBarcodeScannerVisible(false);
+    };
+
 
     return (
         <View style={styles.container}>
-            <TopBar navigation={navigation} />
-            <ScrollView contentContainerStyle={styles.bookDetailsContainer}>
-                <View style={styles.bookDetails}>
-                    <Text style={styles.headerTitle}>Trocar Livro</Text>
+            {isBarcodeScannerVisible ? (
+                <BarcodeScanner onBarCodeScanned={handleBarCodeScanned} onClose={handleCloseScanner} />
+            ) : (
+                <>
+                    <TopBar navigation={navigation} />
+                    <ScrollView contentContainerStyle={styles.bookDetailsContainer}>
+                        <View style={styles.bookDetails}>
+                            <Text style={styles.headerTitle}>Trocar Livro</Text>
 
-                    <Text style={styles.title}>ISBN</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.isbn}</Text>
-                    </View>
+                            <Text style={styles.title}>ISBN</Text>
+                            <View style={styles.valueBox}>
+                                <Text style={styles.valueBoxContent}>{book.isbn}</Text>
+                            </View>
 
-                    <Text style={styles.title}>Título</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.title}</Text>
-                    </View>
+                            <Text style={styles.title}>Título</Text>
+                            <View style={styles.valueBox}>
+                                <Text style={styles.valueBoxContent}>{book.title}</Text>
+                            </View>
 
-                    <Text style={styles.title}>Ano</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.year}</Text>
-                    </View>
+                            <Text style={styles.title}>Ano</Text>
+                            <View style={styles.valueBox}>
+                                <Text style={styles.valueBoxContent}>{book.year}</Text>
+                            </View>
 
-                    <Text style={styles.title}>Autor(es)</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.author}</Text>
-                    </View>
+                            <Text style={styles.title}>Autor(es)</Text>
+                            <View style={styles.valueBox}>
+                                <Text style={styles.valueBoxContent}>{book.author}</Text>
+                            </View>
 
-                    <Text style={styles.title}>Categorias</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.genre.join(', ')}</Text>
-                    </View>
+                            <Text style={styles.title}>Categorias</Text>
+                            <View style={styles.valueBox}>
+                                <Text style={styles.valueBoxContent}>{book.genre.join(', ')}</Text>
+                            </View>
 
-                    <Text style={styles.title}>Trocar por:</Text>
-                    <View style={styles.tradeBy}>
-                        <TextInput
-                            style={styles.input}
-                            value={bookToTradeISBN}
-                            onChangeText={setBookToTradeISBN}
-                            placeholder="Inserir ISBN"
-                            keyboardType='number-pad'
-                        />
-                        <TouchableOpacity style={{ paddingLeft: 10 }} onPress={handleBarcodeButton} >
-                            <Ionicons name="barcode-outline" size={35} color="black" />
-                        </TouchableOpacity>
-                    </View>
+                            <Text style={styles.title}>Trocar por:</Text>
+                            <View style={styles.tradeBy}>
+                                <TextInput
+                                    style={styles.input}
+                                    value={bookToTradeISBN}
+                                    onChangeText={setBookToTradeISBN}
+                                    placeholder="Inserir ISBN"
+                                    keyboardType='number-pad'
+                                />
+                                <TouchableOpacity style={{ paddingLeft: 10 }} onPress={handleBarcodeButton} >
+                                    <Ionicons name="barcode-outline" size={35} color="black" />
+                                </TouchableOpacity>
+                            </View>
 
-                    <Text style={styles.title}>Fotos do livro para trocar:</Text>
-                    {selectedImages.length === 0 ? (
-                        <TouchableOpacity style={styles.photosButton} onPress={handlePhotosButton}>
-                            <Ionicons name='camera-outline' size={20} color="white"></Ionicons>
-                            <Text style={styles.photosButtonText}>Carregar fotos</Text>
-                        </TouchableOpacity>
-                    ) : (
-                        <View style={styles.selectedImagesContainer}>
-                            {selectedImages.map((imageUri, index) => (
-                                <View key={index} style={styles.selectedImageContainer}>
-                                    <RNImage source={{ uri: imageUri }} style={styles.selectedImage} />
-                                    <TouchableOpacity onPress={() => handleRemoveImage(index)} style={styles.deleteButton}>
-                                        <Ionicons name="trash-outline" size={24} color="white" />
-                                    </TouchableOpacity>
+                            <Text style={styles.title}>Fotos do livro para trocar:</Text>
+                            {selectedImages.length === 0 ? (
+                                <TouchableOpacity style={styles.photosButton} onPress={handlePhotosButton}>
+                                    <Ionicons name='camera-outline' size={20} color="white"></Ionicons>
+                                    <Text style={styles.photosButtonText}>Carregar fotos</Text>
+                                </TouchableOpacity>
+                            ) : (
+                                <View style={styles.selectedImagesContainer}>
+                                    {selectedImages.map((imageUri, index) => (
+                                        <View key={index} style={styles.selectedImageContainer}>
+                                            <RNImage source={{ uri: imageUri }} style={styles.selectedImage} />
+                                            <TouchableOpacity onPress={() => handleRemoveImage(index)} style={styles.deleteButton}>
+                                                <Ionicons name="trash-outline" size={24} color="white" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
                                 </View>
-                            ))}
+                            )}
+
+
                         </View>
-                    )}
-
-
-                </View>
-                <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
-                    <View style={styles.buttonsContainer}>
-                        <TouchableOpacity style={styles.discardButton} onPress={handleDiscardBook}>
-                            <Ionicons name="trash-outline" size={19} color="black" />
-                            <Text style={styles.discardButtonText}>Descartar Livro</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.confirmBookButton} onPress={handleConfirmButton}>
-                            {loading ? <ActivityIndicator size="small" color="white" />
-                                :
-                                <Text style={styles.confirmButtonText}>Confirmar</Text>
-                            }
-                        </TouchableOpacity>
-                    </View>
-                </KeyboardAvoidingView>
-            </ScrollView>
-            <BottomBar navigation={navigation} />
-            {/* {isBarcodeScannerVisible && (
-                <BarcodeScanner/>
-            )} */}
+                        <KeyboardAvoidingView
+                            style={{ flex: 1 }}
+                            behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        >
+                            <View style={styles.buttonsContainer}>
+                                <TouchableOpacity style={styles.discardButton} onPress={handleDiscardBook}>
+                                    <Ionicons name="trash-outline" size={19} color="black" />
+                                    <Text style={styles.discardButtonText}>Descartar Livro</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.confirmBookButton} onPress={handleConfirmButton}>
+                                    {loading ? <ActivityIndicator size="small" color="white" />
+                                        :
+                                        <Text style={styles.confirmButtonText}>Confirmar</Text>
+                                    }
+                                </TouchableOpacity>
+                            </View>
+                        </KeyboardAvoidingView>
+                    </ScrollView>
+                    <BottomBar navigation={navigation} />
+                </>
+            )}
         </View>
     );
 };
+
+const cameraViewStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: 'black',
+    },
+    cameraContainer: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 20,
+        width: '100%',
+    },
+    button: {
+        backgroundColor: '#8C756A',
+        borderRadius: 5,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        marginHorizontal: 10,
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+});
+
 
 const styles = StyleSheet.create({
     container: {
@@ -366,3 +417,7 @@ const styles = StyleSheet.create({
 });
 
 export default TradeForm;
+function pausePreview() {
+    throw new Error('Function not implemented.');
+}
+
