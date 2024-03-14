@@ -1,4 +1,4 @@
-import { Book, TransactionType } from "../Models/Book";
+import { Book, Traded, TransactionType } from "../Models/Book";
 import { FIREBASE_DB } from "../config/firebase";
 import { collection,addDoc, getDocs, Query, query, where, CollectionReference, DocumentData, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 
@@ -89,8 +89,6 @@ export const populateBookFromJson = (json: any): Book => {
     transactionType: null,
     currentOwner: null,
     isVisible: true,
-    isRentedTo: null,
-    isTradedWith: null
   };
 };
 
@@ -122,22 +120,58 @@ export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
 
     const bookData = bookSnapshot.data() as Book;
 
-    if (bookData.isRentedTo) {
+    if (bookData.rented != null) {
       throw new Error('Book is already rented');
     }
     
+    if (bookData.traded != null) {
+      throw new Error('Book is already traded');
+    }
 
     await updateDoc(bookRef, {
-      isRentedTo: userId, // Set the user ID who is renting the book
-      isVisible: false, // Mark the book as unavailable for rent
-      rentStartDate: new Date(), // Set the rent start date to the current date
-      rentEndDate: date, // Reset the rent end date
+      rented: {
+        isRentedTo: userId,
+        rentStartDate: new Date(),
+        rentEndDate: date,
+      },
+      isVisible: false,
     });
 
 
     console.log('Book rented successfully');
   } catch (error) {
     console.error('Error renting book:', error);
+    throw error;
+  }
+};
+
+export const tradeBook = async ({ bookId, userId, isbn, tradedByPhotos }: { bookId: string, userId: string, isbn: number, tradedByPhotos: string[] }): Promise<void> => {
+  try {
+    const bookRef = doc(FIREBASE_DB, 'books', bookId);
+    const bookSnapshot = await getDoc(bookRef);
+
+    if (!bookSnapshot.exists()) {
+      throw new Error('Book not found');
+    }
+
+    const bookData = bookSnapshot.data() as { traded?: Traded, currentOwner: string };
+
+    if (bookData.traded != null) {
+      throw new Error('Book is already traded');
+    }
+
+    await updateDoc(bookRef, {
+      traded: {
+        isTradedWith: userId, // Set the user ID who the book is traded with
+        tradedByISBN: isbn, // Set the ISBN of the book being traded by the current user
+        tradedByPhotos, // Set the photos of the book being traded by the current user
+      },
+      isVisible: false, // Mark the book as unavailable for trade
+    });
+
+    console.log('Book traded successfully');
+  } catch (error) {
+    console.error('Error trading book:', error);
     throw error;
   }
 };

@@ -3,8 +3,13 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-nativ
 import BookCard from '../../Components/BookCard';
 import { getAllBooks, subscribeToBooks } from '../../Services/BooksService';
 import { Book, TransactionType } from '../../Models/Book';
+import { NavigationProp } from '@react-navigation/native';
 
-const TradeScreen: React.FC = () => {
+interface TradeScreenProps {
+  navigation: NavigationProp<any>;
+}
+
+const TradeScreen: React.FC<TradeScreenProps> = ({ navigation }) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,8 +34,8 @@ const TradeScreen: React.FC = () => {
     setBooks(updatedBooks);
   };
 
-  const handleActionButton = () => {
-    alert("Feature not yet implemented");
+  const handleActionButton = (item: Book) => {
+    navigation.navigate('TradeForm', { book: item });
   }
 
   return (
@@ -48,7 +53,7 @@ const TradeScreen: React.FC = () => {
           ) : (
             <FlatList
               data={books}
-              renderItem={({ item }) => <BookCard book={item} onActionButton={handleActionButton} />}
+              renderItem={({ item }) => <BookCard book={item} onActionButton={() => handleActionButton(item)} />}
               keyExtractor={(item) => item.isbn.toString()}
             />
           )}
