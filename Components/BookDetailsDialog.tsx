@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Book, TransactionType } from '../Models/Book'; // Import modified enums
+import { useNavigation } from '@react-navigation/native';
 
 interface Props {
   book: Book;
@@ -12,6 +13,13 @@ interface Props {
 }
 
 const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionButton, isToSell }) => {
+  const navigation = useNavigation()
+
+  const handleOwnerClick = () => {
+    alert('Clicked')
+
+  }
+
   return (
     <Modal
       visible={visible}
@@ -55,6 +63,10 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
                 <Text key={index} style={styles.tag}>{tag}</Text>
               ))}
             </View>
+
+            <TouchableOpacity style={styles.ownerContainer} onPress={handleOwnerClick}>
+              <Text style={styles.ownerContainerText}>publicado por {book.currentOwner}</Text>
+            </TouchableOpacity>
 
             {/* IconAndTextButton (Add to cart) */}
             {!isToSell ? (
@@ -117,6 +129,8 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignContent: 'space-between',
+    width: '60%',
     marginBottom: 10,
   },
   title: {
@@ -125,13 +139,14 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 16,
+    paddingLeft: 35
   },
   authorYear: {
     fontSize: 14,
     marginBottom: 8,
   },
   descriptionContainer: {
-    maxHeight: 200, 
+    maxHeight: 100,
     marginBottom: 10,
   },
   description: {
@@ -149,6 +164,13 @@ const styles = StyleSheet.create({
     marginRight: 5,
     marginBottom: 5,
     borderRadius: 8,
+  },
+  ownerContainer: {
+    paddingBottom: 20
+  },
+  ownerContainerText: {
+    color: 'grey',
+    fontStyle: 'italic'
   },
   addToCartButton: {
     flexDirection: 'row',

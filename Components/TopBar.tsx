@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp } from '@react-navigation/native';
 import { listenForCartChanges } from '../Services/ShoppingCartService';
 import IconBadge from 'react-native-icon-badge';
+import { FIREBASE_AUTH } from '../config/firebase';
 
 interface TopBarProps {
   navigation: NavigationProp<any>;
@@ -23,6 +24,10 @@ const TopBar: React.FC<TopBarProps> = ({ navigation }) => {
   }, []);
 
   const navigateToShoppingCart = () => {
+    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+      alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
+      return
+    }
     navigation.navigate('ShoppingCartScreen')
   }
 

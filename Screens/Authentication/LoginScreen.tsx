@@ -15,7 +15,7 @@ const LoginScreen = ({ navigation }) => {
     const handleEmailLogin = async () => {
         setLoading(true)
         try {
-            loginWithEmailAndPassword(email, password)
+            await loginWithEmailAndPassword(email, password)
         } finally {
             setLoading(false)
         }

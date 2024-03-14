@@ -32,6 +32,10 @@ const BuyScreen: React.FC = () => {
   };
 
   const addBookToCart = (book: Book) => {
+    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+      alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
+      return
+    }
     addToCart(FIREBASE_AUTH.currentUser.uid, book)
   }
 

@@ -28,33 +28,43 @@ const UserProfileScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Perfil</Text>
-        <TouchableOpacity onPress={() => console.log('Edit Profile')}>
-          <Ionicons name="pencil" size={24} />
-        </TouchableOpacity>
+        {user && !user.isAnonymous ? (
+          <TouchableOpacity onPress={() => console.log('Edit Profile')}>
+            <Ionicons name="pencil" size={24} />
+          </TouchableOpacity>
+        ) : (
+          <View></View>
+        )}
       </View>
 
-      {/* Profile */}
-      <View style={styles.profileContainer}>
-        <Image source={{ uri: 'https://via.placeholder.com/150/foto1.jpg' }} style={styles.profilePhoto} />
-        <View style={styles.profileInfo}>
-          {isAnonymous ? <Text style={styles.name}>Convidado</Text> :
-            <>
-              <Text style={styles.name}>{isAnonymous ? "Convidado" : user.displayName}</Text>
-              <Text style={styles.email}>{isAnonymous ? "Convidado" : user.email}</Text>
-            </>
-          }
+      {isAnonymous ? (
+        <View style={styles.anonymousContainer}>
+          <Text style={styles.anonymousText}>Utilizador convidado</Text>
+          <Text style={{ fontSize: 20, textAlign: 'center', color: 'grey' }}>Inicie sessão com uma conta para benificiar de todas as funcionalidades</Text>
+          {/* Add any additional content for anonymous user */}
         </View>
-      </View>
+      ) : (
+        <>
+          {/* Profile */}
+          <View style={styles.profileContainer}>
+            <Image source={{ uri: 'https://via.placeholder.com/150/foto1.jpg' }} style={styles.profilePhoto} />
+            <View style={styles.profileInfo}>
+              <Text style={styles.name}>{user.displayName}</Text>
+              <Text style={styles.email}>{user.email}</Text>
+            </View>
+          </View>
 
-      {/* Lazy List */}
-      <View style={styles.lazyListContainer}>
-        <Text style={styles.lazyListTitle}>Histórico de transações</Text>
-        <FlatList
-          data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
-          renderItem={renderListItem}
-          keyExtractor={(item, index) => index.toString()}
-        />
-      </View>
+          {/* Lazy List */}
+          <View style={styles.lazyListContainer}>
+            <Text style={styles.lazyListTitle}>Histórico de transações</Text>
+            <FlatList
+              data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
+              renderItem={renderListItem}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </View>
+        </>
+      )}
 
       {/* Logout Button */}
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
@@ -63,7 +73,7 @@ const UserProfileScreen = ({ navigation }) => {
 
       {/* Bottom Bar */}
       <BottomBar navigation={navigation} />
-    </View>
+    </View >
   );
 };
 
@@ -142,6 +152,16 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  anonymousContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  anonymousText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
 });
 

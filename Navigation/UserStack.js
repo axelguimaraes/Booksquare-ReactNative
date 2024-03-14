@@ -12,8 +12,10 @@ import ShoppingCartScreen from '../Screens/Shopping/ShoppingCartScreen';
 import ChatScreen from '../Screens/Messages/ChatScreen';
 import RentForm from '../Screens/Rent/RentForm';
 import TradeForm from '../Screens/Trade/TradeForm';
+import { FIREBASE_AUTH } from '../config/firebase';
 
 const Stack = createStackNavigator();
+const user = FIREBASE_AUTH.currentUser
 
 export default function UserStack() {
   return (
@@ -27,8 +29,8 @@ export default function UserStack() {
         <Stack.Screen name="Sell" component={AddBook} options={{ headerShown: false }} />
         <Stack.Screen name="ShoppingCartScreen" component={ShoppingCartScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="RentForm" component={RentForm} options={{headerShown: false}} />
-        <Stack.Screen name="TradeForm" component={TradeForm} options={{headerShown: false}} />
+        <Stack.Screen name="RentForm" component={RentForm} options={{ headerShown: false }} />
+        <Stack.Screen name="TradeForm" component={TradeForm} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
