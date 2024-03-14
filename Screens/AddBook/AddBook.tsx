@@ -11,6 +11,7 @@ import { Book, TransactionType } from '../../Models/Book';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { Ionicons } from '@expo/vector-icons';
 import { FIREBASE_AUTH } from '../../config/firebase';
+import BarcodeScanner from '../../Utils/useBarcodeScanner';
 
 const AddBook = ({ navigation }) => {
   const [isbn, setIsbn] = useState('');
@@ -22,6 +23,7 @@ const AddBook = ({ navigation }) => {
   const [transactionTypeIndex, setTransactionTypeIndex] = useState(null)
   const [rentalPricePerDay, setRentalPricePerDay] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [isBarcodeScannerVisible, setIsBarcodeScannerVisible] = useState(false)
 
   const resetValues = () => {
     setIsbn(null)
@@ -68,6 +70,19 @@ const AddBook = ({ navigation }) => {
     setBook(bookInfo)
     setShowBookDialog(false)
   }
+
+  const handleBarcodeButton = () => {
+    setIsBarcodeScannerVisible(true);
+  };
+
+  const handleBarCodeScanned = (data) => {
+    setIsbn(data);
+    setIsBarcodeScannerVisible(false);
+  };
+
+  const handleCloseScanner = () => {
+    setIsBarcodeScannerVisible(false);
+  };
 
   const handleSegmentedControlChange = (event) => {
     const selectedIndex = event.nativeEvent.selectedSegmentIndex;
@@ -169,130 +184,141 @@ const AddBook = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TopBar navigation={navigation} />
-
-      {/* Conditional rendering based on book state */}
-      {book ? (
-        <ScrollView contentContainerStyle={styles.bookDetailsContainer}>
-          <View style={styles.bookDetails}>
-            <Text style={styles.headerTitle}>Adicionar Livro</Text>
-
-            <Text style={styles.title}>ISBN</Text>
-            <View style={styles.valueBox}>
-              <Text style={styles.valueBoxContent}>{isbn}</Text>
-            </View>
-
-            <Text style={styles.title}>Título</Text>
-            <View style={styles.valueBox}>
-              <Text style={styles.valueBoxContent}>{book.title}</Text>
-            </View>
-
-            <Text style={styles.title}>Ano</Text>
-            <View style={styles.valueBox}>
-              <Text style={styles.valueBoxContent}>{book.year}</Text>
-            </View>
-
-            <Text style={styles.title}>Autor(es)</Text>
-            <View style={styles.valueBox}>
-              <Text style={styles.valueBoxContent}>{book.author}</Text>
-            </View>
-
-            <Text style={styles.title}>Categorias</Text>
-            <View style={styles.valueBox}>
-              <Text style={styles.valueBoxContent}>{book.genre.join(', ')}</Text>
-            </View>
-
-            <Text style={styles.title}>Selecione o tipo de transação</Text>
-            <SegmentedControl
-              values={[TransactionType.SALE, TransactionType.RENTAL, TransactionType.TRADE]}
-              selectedIndex={transactionTypeIndex}
-              onChange={(event) => {
-                setTransactionTypeIndex(event.nativeEvent.selectedSegmentIndex);
-                handleSegmentedControlChange(event)
-              }}
-            />
-            {transactionType === TransactionType.SALE && (
-              <View style={styles.priceInput}>
-                <Text style={styles.title}>Preço</Text>
-                <TextInput
-                  style={styles.input}
-                  value={price ? `€ ${price}` : ''}
-                  onChangeText={handlePriceChange}
-                  placeholder="Insira preço"
-                  keyboardType='number-pad'
-                />
-              </View>
-            )}
-
-            {transactionType === TransactionType.RENTAL && (
-              <View style={styles.priceInput}>
-                <Text style={styles.title}>Preço por dia</Text>
-                <TextInput
-                  style={styles.input}
-                  value={rentalPricePerDay ? `€ ${rentalPricePerDay}` : ''}
-                  onChangeText={handlePricePerDayChange}
-                  placeholder="Insira preço diário de aluguer"
-                  keyboardType='number-pad'
-                />
-              </View>
-            )}
-          </View>
-
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
-            <View style={styles.buttonsContainer}>
-              <TouchableOpacity style={styles.discardButton} onPress={handleDiscardBook}>
-                <Ionicons name="trash-outline" size={19} color="black" />
-                <Text style={styles.discardButtonText}>Descartar Livro</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmBookButton} onPress={handleConfirmButton}>
-                {loading ? <ActivityIndicator size="small" color="white" />
-                  :
-                  <Text style={styles.confirmButtonText}>Confirmar</Text>
-                }
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-        </ScrollView>
+      {isBarcodeScannerVisible ? (
+        <BarcodeScanner onBarCodeScanned={handleBarCodeScanned} onClose={handleCloseScanner} />
       ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.headerTitle}>Adicionar Livro</Text>
-            <Text style={styles.headerExplanation}>Adicione um livro facilmente usando o código ISBN
-              encontrado na capa do livro. Os códigos ISBN geralmente encontram-se junto ao código de barras.</Text>
+        <>
+          <TopBar navigation={navigation} />
+          {/* Conditional rendering based on book state */}
+          {book ? (
+            <ScrollView contentContainerStyle={styles.bookDetailsContainer}>
+              <View style={styles.bookDetails}>
+                <Text style={styles.headerTitle}>Adicionar Livro</Text>
 
-            <Text style={styles.title}>ISBN</Text>
-            <TextInput
-              style={styles.input}
-              value={isbn}
-              onChangeText={setIsbn}
-              placeholder="Inserir ISBN"
-              keyboardType='number-pad'
+                <Text style={styles.title}>ISBN</Text>
+                <View style={styles.valueBox}>
+                  <Text style={styles.valueBoxContent}>{isbn}</Text>
+                </View>
+
+                <Text style={styles.title}>Título</Text>
+                <View style={styles.valueBox}>
+                  <Text style={styles.valueBoxContent}>{book.title}</Text>
+                </View>
+
+                <Text style={styles.title}>Ano</Text>
+                <View style={styles.valueBox}>
+                  <Text style={styles.valueBoxContent}>{book.year}</Text>
+                </View>
+
+                <Text style={styles.title}>Autor(es)</Text>
+                <View style={styles.valueBox}>
+                  <Text style={styles.valueBoxContent}>{book.author}</Text>
+                </View>
+
+                <Text style={styles.title}>Categorias</Text>
+                <View style={styles.valueBox}>
+                  <Text style={styles.valueBoxContent}>{book.genre.join(', ')}</Text>
+                </View>
+
+                <Text style={styles.title}>Selecione o tipo de transação</Text>
+                <SegmentedControl
+                  values={[TransactionType.SALE, TransactionType.RENTAL, TransactionType.TRADE]}
+                  selectedIndex={transactionTypeIndex}
+                  onChange={(event) => {
+                    setTransactionTypeIndex(event.nativeEvent.selectedSegmentIndex);
+                    handleSegmentedControlChange(event)
+                  }}
+                />
+                {transactionType === TransactionType.SALE && (
+                  <View style={styles.priceInput}>
+                    <Text style={styles.title}>Preço</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={price ? `€ ${price}` : ''}
+                      onChangeText={handlePriceChange}
+                      placeholder="Insira preço"
+                      keyboardType='number-pad'
+                    />
+                  </View>
+                )}
+
+                {transactionType === TransactionType.RENTAL && (
+                  <View style={styles.priceInput}>
+                    <Text style={styles.title}>Preço por dia</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={rentalPricePerDay ? `€ ${rentalPricePerDay}` : ''}
+                      onChangeText={handlePricePerDayChange}
+                      placeholder="Insira preço diário de aluguer"
+                      keyboardType='number-pad'
+                    />
+                  </View>
+                )}
+              </View>
+
+              <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+              >
+                <View style={styles.buttonsContainer}>
+                  <TouchableOpacity style={styles.discardButton} onPress={handleDiscardBook}>
+                    <Ionicons name="trash-outline" size={19} color="black" />
+                    <Text style={styles.discardButtonText}>Descartar Livro</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.confirmBookButton} onPress={handleConfirmButton}>
+                    {loading ? <ActivityIndicator size="small" color="white" />
+                      :
+                      <Text style={styles.confirmButtonText}>Confirmar</Text>
+                    }
+                  </TouchableOpacity>
+                </View>
+              </KeyboardAvoidingView>
+            </ScrollView>
+          ) : (
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.headerTitle}>Adicionar Livro</Text>
+                <Text style={styles.headerExplanation}>Adicione um livro facilmente usando o código ISBN
+                  encontrado na capa do livro. Os códigos ISBN geralmente encontram-se junto ao código de barras.</Text>
+
+                <Text style={styles.title}>ISBN</Text>
+                <View style={styles.ISBNContainer}>
+                  <TextInput
+                    style={styles.input}
+                    value={isbn}
+                    onChangeText={setIsbn}
+                    placeholder="Inserir ISBN"
+                    keyboardType='number-pad'
+                  />
+                  <TouchableOpacity style={{ paddingLeft: 10 }} onPress={handleBarcodeButton} >
+                    <Ionicons name="barcode-outline" size={35} color="black" />
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity style={styles.confirmButton} onPress={handleISBNSubmit}>
+                  {loading ? <ActivityIndicator size="small" color="white" />
+                    :
+                    <Text style={styles.confirmButtonText}>Submeter</Text>
+                  }
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          )}
+
+          {/* Book details dialog */}
+          {bookInfo && (
+            <BookDetailsDialog
+              visible={showBookDialog}
+              onClose={handleCloseBookDialog}
+              book={bookInfo}
+              onActionButton={handleSelectButton}
+              isToSell={true}
             />
-            <TouchableOpacity style={styles.confirmButton} onPress={handleISBNSubmit}>
-              {loading ? <ActivityIndicator size="small" color="white" />
-                :
-                <Text style={styles.confirmButtonText}>Submeter</Text>
-              }
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      )}
-
-      {/* Book details dialog */}
-      {bookInfo && (
-        <BookDetailsDialog
-          visible={showBookDialog}
-          onClose={handleCloseBookDialog}
-          book={bookInfo}
-          onActionButton={handleSelectButton}
-          isToSell={true}
-        />
-      )}
-      <BottomBar navigation={navigation} />
-    </View>
+          )}
+          <BottomBar navigation={navigation} />
+        </>
+      )
+      }
+    </View >
   );
 };
 
@@ -349,6 +375,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 10,
+    width: '100%'
   },
   confirmButton: {
     backgroundColor: '#8C756A',
@@ -356,7 +383,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: 20,
-    marginHorizontal: 20,
   },
   confirmButtonText: {
     color: 'white',
@@ -410,6 +436,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 5,
+  },
+  ISBNContainer: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    paddingBottom: 10,
+    paddingRight: 40,
   },
 });
 

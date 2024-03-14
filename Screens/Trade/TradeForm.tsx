@@ -34,7 +34,6 @@ const TradeForm = ({ route }) => {
 
     const handleCloseScanner = () => {
         setIsBarcodeScannerVisible(false);
-        pausePreview()
         useCameraPermissions()[0]
     };
 
@@ -417,7 +416,3 @@ const styles = StyleSheet.create({
 });
 
 export default TradeForm;
-function pausePreview() {
-    throw new Error('Function not implemented.');
-}
-
