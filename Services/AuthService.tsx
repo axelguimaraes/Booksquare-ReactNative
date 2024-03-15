@@ -1,5 +1,7 @@
 import { GoogleAuthProvider, createUserWithEmailAndPassword, signInAnonymously, signInWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { FIREBASE_AUTH } from "../config/firebase"
+import { FIREBASE_AUTH, FIREBASE_DB } from "../config/firebase"
+import { User } from "../Models/User"
+import { addDoc, collection } from "firebase/firestore"
 
 const auth = FIREBASE_AUTH
 const provider = new GoogleAuthProvider()
@@ -38,7 +40,16 @@ export const registerWithEmailAndPassword = async (email, password, displayName)
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
         const user = userCredential.user
-        await updateProfile(user, {displayName: displayName})
+        await updateProfile(user, { displayName: displayName })
+
+        const newUser: User = {
+            id: user.uid,
+            displayName: displayName,
+            email: email
+        }
+
+        await addDoc(collection(FIREBASE_DB, 'users'), newUser)
+
         return user
     } catch (error: any) {
         console.log(error)

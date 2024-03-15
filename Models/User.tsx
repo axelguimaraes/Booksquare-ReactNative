@@ -1,8 +1,7 @@
 export interface User {
-    id: number,
-    username: string,
+    id: string,
+    displayName: string,
     email: string,
-    password: string,
     profilePhoto?: string,
     transactionsID?: number[],
     messagesID?: number[]
