@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Book, TransactionType } from '../Models/Book'; // Import modified enums
+import { Book, TransactionType } from '../Models/Book';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationParamsList } from '../Navigation/UserStack';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { getUserIdByDisplayName } from '../Services/UsersService';
+import { FIREBASE_AUTH } from '../config/firebase';
 
 interface Props {
   book: Book;
@@ -13,11 +17,23 @@ interface Props {
 }
 
 const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionButton, isToSell }) => {
-  const navigation = useNavigation()
+  const navigation = useNavigation<StackNavigationProp<StackNavigationParamsList>>()
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const id = await getUserIdByDisplayName(book.currentOwner)
+      setUserId(id)
+    }
+    fetchUserId()
+  }, [book.currentOwner])
 
   const handleOwnerClick = () => {
-    alert('Clicked')
-
+    if (book.currentOwner === FIREBASE_AUTH.currentUser.displayName) {
+      navigation.navigate('Profile');
+    } else {
+      navigation.navigate('ProfileOtherUsers', { userId: userId });
+    }
   }
 
   return (
@@ -65,7 +81,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
             </View>
 
             <TouchableOpacity style={styles.ownerContainer} onPress={handleOwnerClick}>
-              <Text style={styles.ownerContainerText}>publicado por {book.currentOwner}</Text>
+              <Text style={styles.ownerContainerText}>Publicado por {book.currentOwner}</Text>
             </TouchableOpacity>
 
             {/* IconAndTextButton (Add to cart) */}

@@ -13,8 +13,23 @@ import ChatScreen from '../Screens/Messages/ChatScreen';
 import RentForm from '../Screens/Rent/RentForm';
 import TradeForm from '../Screens/Trade/TradeForm';
 import { FIREBASE_AUTH } from '../config/firebase';
+import ProfileOtherUsers from '../Screens/Profile/ProfileOtherUsers';
 
-const Stack = createStackNavigator();
+export type StackNavigationParamsList = {
+  Home: undefined
+  Notifications: undefined
+  Search: undefined
+  Messages: undefined
+  Profile: { userId: string }
+  ProfileOtherUsers: { userId: string }
+  Sell: undefined
+  ShoppingCartScreen: undefined
+  ChatScreen: undefined
+  RentForm: undefined
+  TradeForm: undefined
+}
+
+const Stack = createStackNavigator<StackNavigationParamsList>();
 const user = FIREBASE_AUTH.currentUser
 
 export default function UserStack() {
@@ -26,6 +41,7 @@ export default function UserStack() {
         <Stack.Screen name="Search" component={Search} options={{ headerShown: false }} />
         <Stack.Screen name="Messages" component={Messages} options={{ headerShown: false }} />
         <Stack.Screen name="Profile" component={UserProfileScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ProfileOtherUsers" component={ProfileOtherUsers} options={{ headerShown: false }} />
         <Stack.Screen name="Sell" component={AddBook} options={{ headerShown: false }} />
         <Stack.Screen name="ShoppingCartScreen" component={ShoppingCartScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: false }} />

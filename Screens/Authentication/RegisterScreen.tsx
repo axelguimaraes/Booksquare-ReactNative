@@ -66,6 +66,7 @@ const RegisterScreen = ({ navigation }) => {
                         value={username}
                         onChangeText={handleUsernameChange}
                         placeholder="Nome de utilizador"
+                        autoCapitalize='none'
                     />
                     <TextInput
                         style={styles.input}
