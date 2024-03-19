@@ -29,6 +29,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
   }, [book.currentOwner])
 
   const handleOwnerClick = () => {
+    onClose()
     if (book.currentOwner === FIREBASE_AUTH.currentUser.displayName) {
       navigation.navigate('Profile');
     } else {

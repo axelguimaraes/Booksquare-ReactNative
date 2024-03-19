@@ -3,6 +3,6 @@ export interface User {
     displayName: string,
     email: string,
     profilePhoto?: string,
-    transactionsID?: number[],
-    messagesID?: number[]
+    transactionsID?: string[],
+    chatID?: string[]
 }

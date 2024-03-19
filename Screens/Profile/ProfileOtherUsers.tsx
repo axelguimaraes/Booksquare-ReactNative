@@ -7,6 +7,7 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { StackNavigationParamsList } from '../../Navigation/UserStack';
 import { getUserByDisplayName, getUserById } from '../../Services/UsersService';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 type ProfileOtherUsersNavigationProp = StackNavigationProp<StackNavigationParamsList, 'ProfileOtherUsers'>;
 type ProfileOtherUsersRouteProp = RouteProp<StackNavigationParamsList, 'ProfileOtherUsers'>;
@@ -19,7 +20,6 @@ type Props = {
 const ProfileOtherUsers: React.FC<Props> = ({ navigation, route }) => {
   const { userId } = route.params;
 
-  // State to hold user data
   const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,14 +27,16 @@ const ProfileOtherUsers: React.FC<Props> = ({ navigation, route }) => {
     getUserById(userId)
       .then((userData) => {
         setUser(userData)
-        setLoading(false); // Set loading to false when data is fetched
+        setLoading(false);
       });
   }, [userId]);
 
-  const handleMessageButton = () => {
+  const handleMessageButton = async () => {
     if (loading) return
+    let currentUser;
+    await getUserById(FIREBASE_AUTH.currentUser.uid).then((user) => currentUser = user)
 
-    navigation.navigate('ChatScreen')
+    navigation.navigate('ChatScreen', { currentUser: currentUser, otherUser: user });
   }
 
   const renderListItem = ({ item }) => (

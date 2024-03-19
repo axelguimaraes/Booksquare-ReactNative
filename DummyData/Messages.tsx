@@ -1,4 +1,4 @@
-import { Message } from "../Models/Message";
+import { Message } from "../Models/Chat";
 
 const Messages: Message[] = [
     {

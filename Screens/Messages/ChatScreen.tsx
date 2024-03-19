@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import getTimestampText from '../../Utils/getTimestampText';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { User } from '../../Models/User';
 
@@ -10,8 +10,10 @@ interface Props {
   otherUser: User;
 }
 
-const ChatScreen: React.FC<Props> = ({ currentUser, otherUser }) => {
+const ChatScreen: React.FC<Props> = () => {
   const navigation = useNavigation();
+  const route = useRoute()
+  const { currentUser, otherUser } = route.params as { currentUser: User; otherUser: User };
 
   const [messages, setMessages] = useState([
     { id: '1', sender: 'user1', content: 'Olá!', timestamp: '2024-01-28T10:00:00' },
