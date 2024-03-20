@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView,
-  KeyboardAvoidingView, Platform, ActivityIndicator
+  KeyboardAvoidingView, Platform, ActivityIndicator, Image as RNImage
 } from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
@@ -12,6 +12,8 @@ import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import { Ionicons } from '@expo/vector-icons';
 import { FIREBASE_AUTH } from '../../config/firebase';
 import BarcodeScanner from '../../Utils/useBarcodeScanner';
+import { ImagePickerResult } from 'expo-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 
 const AddBook = ({ navigation }) => {
   const [isbn, setIsbn] = useState('');
@@ -24,6 +26,7 @@ const AddBook = ({ navigation }) => {
   const [rentalPricePerDay, setRentalPricePerDay] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isBarcodeScannerVisible, setIsBarcodeScannerVisible] = useState(false)
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   const resetValues = () => {
     setIsbn(null)
@@ -130,7 +133,7 @@ const AddBook = ({ navigation }) => {
       year: bookInfo.year,
       author: bookInfo.author,
       genre: bookInfo.genre,
-      photos: bookInfo.photos,
+      photos: selectedImages,
       transactionType: transactionType,
       price: transactionType === TransactionType.SALE ? Number.parseFloat(price) : null,
       rentalPricePerDay: transactionType === TransactionType.RENTAL ? Number.parseFloat(rentalPricePerDay) : null,
@@ -181,6 +184,30 @@ const AddBook = ({ navigation }) => {
     setRentalPricePerDay(formattedText);
   };
 
+  const handlePhotosButton = async () => {
+    let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        aspect: [4, 3],
+        quality: 1,
+        allowsMultipleSelection: true,
+    });
+
+    if (!result.canceled) {
+        const successResult = result as ImagePicker.ImagePickerSuccessResult;
+        const selectedAssets = successResult.assets;
+        if (selectedAssets.length > 0) {
+            const selectedImages = selectedAssets.map(asset => asset.uri);
+            setSelectedImages(selectedImages);
+        }
+    }
+};
+
+const handleRemoveImage = (index: number) => {
+    const updatedImages = [...selectedImages];
+    updatedImages.splice(index, 1);
+    setSelectedImages(updatedImages);
+};
+
 
   return (
     <View style={styles.container}>
@@ -219,6 +246,25 @@ const AddBook = ({ navigation }) => {
                 <View style={styles.valueBox}>
                   <Text style={styles.valueBoxContent}>{book.genre.join(', ')}</Text>
                 </View>
+
+                <Text style={styles.title}>Insira fotos do livro:</Text>
+                {selectedImages.length === 0 ? (
+                  <TouchableOpacity style={styles.photosButton} onPress={handlePhotosButton}>
+                    <Ionicons name='camera-outline' size={20} color="white"></Ionicons>
+                    <Text style={styles.photosButtonText}>Carregar fotos</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.selectedImagesContainer}>
+                    {selectedImages.map((imageUri, index) => (
+                      <View key={index} style={styles.selectedImageContainer}>
+                        <RNImage source={{ uri: imageUri }} style={styles.selectedImage} />
+                        <TouchableOpacity onPress={() => handleRemoveImage(index)} style={styles.deleteButton}>
+                          <Ionicons name="trash-outline" size={24} color="white" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                )}
 
                 <Text style={styles.title}>Selecione o tipo de transação</Text>
                 <SegmentedControl
@@ -445,6 +491,44 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingRight: 40,
   },
+  photosButton: {
+    backgroundColor: '#8C756A',
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row'
+},
+photosButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    paddingLeft: 15
+},
+selectedImagesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+},
+selectedImageContainer: {
+    position: 'relative',
+    marginRight: 10,
+    marginBottom: 10,
+},
+selectedImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 5,
+},
+deleteButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: 'grey',
+    borderRadius: 10,
+    padding: 5,
+},
 });
 
 export default AddBook;
