@@ -133,7 +133,7 @@ const AddBook = ({ navigation }) => {
       year: bookInfo.year,
       author: bookInfo.author,
       genre: bookInfo.genre,
-      photos: selectedImages,
+      photos: [...selectedImages, ...bookInfo.photos],
       transactionType: transactionType,
       price: transactionType === TransactionType.SALE ? Number.parseFloat(price) : null,
       rentalPricePerDay: transactionType === TransactionType.RENTAL ? Number.parseFloat(rentalPricePerDay) : null,
@@ -186,27 +186,27 @@ const AddBook = ({ navigation }) => {
 
   const handlePhotosButton = async () => {
     let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        aspect: [4, 3],
-        quality: 1,
-        allowsMultipleSelection: true,
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      aspect: [4, 3],
+      quality: 1,
+      allowsMultipleSelection: true,
     });
 
     if (!result.canceled) {
-        const successResult = result as ImagePicker.ImagePickerSuccessResult;
-        const selectedAssets = successResult.assets;
-        if (selectedAssets.length > 0) {
-            const selectedImages = selectedAssets.map(asset => asset.uri);
-            setSelectedImages(selectedImages);
-        }
+      const successResult = result as ImagePicker.ImagePickerSuccessResult;
+      const selectedAssets = successResult.assets;
+      if (selectedAssets.length > 0) {
+        const selectedImages = selectedAssets.map(asset => asset.uri);
+        setSelectedImages(selectedImages);
+      }
     }
-};
+  };
 
-const handleRemoveImage = (index: number) => {
+  const handleRemoveImage = (index: number) => {
     const updatedImages = [...selectedImages];
     updatedImages.splice(index, 1);
     setSelectedImages(updatedImages);
-};
+  };
 
 
   return (
@@ -248,23 +248,25 @@ const handleRemoveImage = (index: number) => {
                 </View>
 
                 <Text style={styles.title}>Insira fotos do livro:</Text>
-                {selectedImages.length === 0 ? (
-                  <TouchableOpacity style={styles.photosButton} onPress={handlePhotosButton}>
-                    <Ionicons name='camera-outline' size={20} color="white"></Ionicons>
-                    <Text style={styles.photosButtonText}>Carregar fotos</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.selectedImagesContainer}>
-                    {selectedImages.map((imageUri, index) => (
-                      <View key={index} style={styles.selectedImageContainer}>
-                        <RNImage source={{ uri: imageUri }} style={styles.selectedImage} />
-                        <TouchableOpacity onPress={() => handleRemoveImage(index)} style={styles.deleteButton}>
-                          <Ionicons name="trash-outline" size={24} color="white" />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                )}
+                <View style={{paddingBottom: 10}}>
+                  {selectedImages.length === 0 ? (
+                    <TouchableOpacity style={styles.photosButton} onPress={handlePhotosButton}>
+                      <Ionicons name='camera-outline' size={20} color="white"></Ionicons>
+                      <Text style={styles.photosButtonText}>Carregar fotos</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.selectedImagesContainer}>
+                      {selectedImages.map((imageUri, index) => (
+                        <View key={index} style={styles.selectedImageContainer}>
+                          <RNImage source={{ uri: imageUri }} style={styles.selectedImage} />
+                          <TouchableOpacity onPress={() => handleRemoveImage(index)} style={styles.deleteButton}>
+                            <Ionicons name="trash-outline" size={24} color="white" />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
 
                 <Text style={styles.title}>Selecione o tipo de transação</Text>
                 <SegmentedControl
@@ -357,7 +359,7 @@ const handleRemoveImage = (index: number) => {
               onClose={handleCloseBookDialog}
               book={bookInfo}
               onActionButton={handleSelectButton}
-              isToSell={true}
+              hasTransactionType={false}
             />
           )}
           <BottomBar navigation={navigation} />
@@ -500,35 +502,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row'
-},
-photosButtonText: {
+  },
+  photosButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
     paddingLeft: 15
-},
-selectedImagesContainer: {
+  },
+  selectedImagesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-},
-selectedImageContainer: {
+  },
+  selectedImageContainer: {
     position: 'relative',
     marginRight: 10,
     marginBottom: 10,
-},
-selectedImage: {
+  },
+  selectedImage: {
     width: 100,
     height: 100,
     borderRadius: 5,
-},
-deleteButton: {
+  },
+  deleteButton: {
     position: 'absolute',
     top: 0,
     right: 0,
     backgroundColor: 'grey',
     borderRadius: 10,
     padding: 5,
-},
+  },
 });
 
 export default AddBook;

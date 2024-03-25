@@ -49,7 +49,7 @@ const BookCard: React.FC<Props> = ({ book, onActionButton }) => {
         visible={dialogVisible}
         onClose={handleCloseDialog}
         onActionButton={handleActionButton}
-        isToSell={false}
+        hasTransactionType={book.transactionType !== null}
       />
     </>
   );

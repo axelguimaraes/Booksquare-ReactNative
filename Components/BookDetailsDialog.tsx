@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Book, TransactionType } from '../Models/Book';
 import { useNavigation } from '@react-navigation/native';
@@ -13,12 +13,14 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onActionButton: () => void;
-  isToSell: boolean
+  hasTransactionType: boolean
 }
 
-const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionButton, isToSell }) => {
+const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionButton, hasTransactionType }) => {
   const navigation = useNavigation<StackNavigationProp<StackNavigationParamsList>>()
   const [userId, setUserId] = useState<string | null>(null)
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -27,6 +29,17 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
     }
     fetchUserId()
   }, [book.currentOwner])
+
+  const handleScroll = (event: any) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
+    setCurrentIndex(index);
+  };
+
+  const scrollToIndex = (index: number) => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToIndex({ index, animated: true });
+    }
+  };
 
   const handleOwnerClick = () => {
     onClose()
@@ -52,12 +65,28 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
           </TouchableOpacity>
 
           {/* Photos */}
-          <ScrollView horizontal>
+          {/* <ScrollView horizontal>
             {book.photos && book.photos.length > 0 && (
               <Image source={{ uri: book.photos[0] }} style={styles.bookImage} />
             )}
-            {/* Additional photos can be displayed here */}
-          </ScrollView>
+          </ScrollView> */}
+
+          <FlatList
+            ref={flatListRef}
+            horizontal
+            data={book.photos}
+            renderItem={({ item }) => (
+              <View style={{ width: '100%' }}>
+                <Image source={{ uri: item }} style={styles.bookImage} />
+              </View>
+            )}
+            keyExtractor={(item, index) => index.toString()}
+            onScroll={handleScroll}
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            snapToAlignment="center"
+            decelerationRate="fast"
+          />
 
           {/* Book details */}
           <View style={styles.bookDetails}>
@@ -86,7 +115,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
             </TouchableOpacity>
 
             {/* IconAndTextButton (Add to cart) */}
-            {!isToSell ? (
+            {hasTransactionType ? (
               <TouchableOpacity
                 style={styles.addToCartButton}
                 onPress={onActionButton}
