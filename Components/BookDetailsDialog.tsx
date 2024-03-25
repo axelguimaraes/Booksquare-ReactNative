@@ -115,27 +115,28 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
             </TouchableOpacity>
 
             {/* IconAndTextButton (Add to cart) */}
-            {hasTransactionType ? (
-              <TouchableOpacity
-                style={styles.addToCartButton}
-                onPress={onActionButton}
-              >
-                <Ionicons name="add" size={24} color="white" />
-                <Text style={styles.addToCartText}>
-                  {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
-                    book.transactionType === TransactionType.RENTAL ? 'Alugar' :
-                      'Trocar'
-                  }
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.addToCartButton}
-                onPress={onActionButton}
-              >
-                <Text style={styles.addToCartText}>Selecionar livro</Text>
-              </TouchableOpacity>
-            )}
+            {book.currentOwner === FIREBASE_AUTH.currentUser.displayName ? (<></>) :
+              hasTransactionType ? (
+                <TouchableOpacity
+                  style={styles.addToCartButton}
+                  onPress={onActionButton}
+                >
+                  <Ionicons name="add" size={24} color="white" />
+                  <Text style={styles.addToCartText}>
+                    {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
+                      book.transactionType === TransactionType.RENTAL ? 'Alugar' :
+                        'Trocar'
+                    }
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.addToCartButton}
+                  onPress={onActionButton}
+                >
+                  <Text style={styles.addToCartText}>Selecionar livro</Text>
+                </TouchableOpacity>
+              )}
 
           </View>
         </View>
