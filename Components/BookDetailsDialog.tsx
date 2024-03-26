@@ -7,6 +7,7 @@ import { StackNavigationParamsList } from '../Navigation/UserStack';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { getUserIdByDisplayName } from '../Services/UsersService';
 import { FIREBASE_AUTH } from '../config/firebase';
+import Swiper from 'react-native-swiper'
 
 interface Props {
   book: Book;
@@ -65,28 +66,15 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
           </TouchableOpacity>
 
           {/* Photos */}
-          {/* <ScrollView horizontal>
-            {book.photos && book.photos.length > 0 && (
-              <Image source={{ uri: book.photos[0] }} style={styles.bookImage} />
-            )}
-          </ScrollView> */}
-
-          <FlatList
-            ref={flatListRef}
-            horizontal
-            data={book.photos}
-            renderItem={({ item }) => (
-              <View style={{ width: '100%' }}>
-                <Image source={{ uri: item }} style={styles.bookImage} />
-              </View>
-            )}
-            keyExtractor={(item, index) => index.toString()}
-            onScroll={handleScroll}
-            showsHorizontalScrollIndicator={false}
-            pagingEnabled
-            snapToAlignment="center"
-            decelerationRate="fast"
-          />
+          <View style={{ height: 350, marginTop: 20 }}>
+            <Swiper>
+              {book.photos.map((imageUrl, index) => (
+                <View key={index} style={{ flex: 1, height: '100%' }}>
+                  <Image source={{ uri: imageUrl }} style={styles.bookImage} resizeMode="cover" />
+                </View>
+              ))}
+            </Swiper>
+          </View>
 
           {/* Book details */}
           <View style={styles.bookDetails}>
@@ -155,8 +143,9 @@ const styles = StyleSheet.create({
   modalView: {
     backgroundColor: 'white',
     padding: 20,
-    borderRadius: 10,
-    width: '80%',
+    //borderRadius: 10,
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
   },
   closeButton: {
@@ -164,8 +153,13 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
   },
+  swiperContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   bookImage: {
-    width: 200,
+    width: '100%', // Make the image take up full width
     height: 300,
     borderRadius: 8,
     marginBottom: 10,
@@ -176,17 +170,18 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignContent: 'space-between',
-    width: '60%',
+    alignItems: 'center',
+    width: '100%',
     marginBottom: 10,
   },
   title: {
+    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
   },
   price: {
     fontSize: 16,
-    paddingLeft: 35
+    fontWeight: 'bold',
   },
   authorYear: {
     fontSize: 14,

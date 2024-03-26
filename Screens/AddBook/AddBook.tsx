@@ -14,6 +14,7 @@ import { FIREBASE_AUTH } from '../../config/firebase';
 import BarcodeScanner from '../../Utils/useBarcodeScanner';
 import { ImagePickerResult } from 'expo-image-picker';
 import * as ImagePicker from 'expo-image-picker';
+import uploadMedia from '../../Utils/uploadMedia';
 
 const AddBook = ({ navigation }) => {
   const [isbn, setIsbn] = useState('');
@@ -111,7 +112,7 @@ const AddBook = ({ navigation }) => {
     resetValues()
   }
 
-  const handleConfirmButton = () => {
+  const handleConfirmButton = async () => {
     setLoading(true);
 
     if (!bookInfo) return;
@@ -126,6 +127,14 @@ const AddBook = ({ navigation }) => {
       return;
     }
 
+    if (selectedImages.length < 1) {
+      setLoading(false)
+      alert("Adicione fotos do livro!");
+      return
+    }
+
+    const downloadURLs = await uploadMedia(selectedImages);
+
     const newBook: Book = {
       isbn: Number.parseInt(isbn),
       title: bookInfo.title,
@@ -133,7 +142,7 @@ const AddBook = ({ navigation }) => {
       year: bookInfo.year,
       author: bookInfo.author,
       genre: bookInfo.genre,
-      photos: [...selectedImages, ...bookInfo.photos],
+      photos: [...downloadURLs, ...bookInfo.photos],
       transactionType: transactionType,
       price: transactionType === TransactionType.SALE ? Number.parseFloat(price) : null,
       rentalPricePerDay: transactionType === TransactionType.RENTAL ? Number.parseFloat(rentalPricePerDay) : null,
