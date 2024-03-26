@@ -142,7 +142,7 @@ const AddBook = ({ navigation }) => {
       year: bookInfo.year,
       author: bookInfo.author,
       genre: bookInfo.genre,
-      photos: [...downloadURLs, ...bookInfo.photos],
+      photos: [...bookInfo.photos, ...downloadURLs, ],
       transactionType: transactionType,
       price: transactionType === TransactionType.SALE ? Number.parseFloat(price) : null,
       rentalPricePerDay: transactionType === TransactionType.RENTAL ? Number.parseFloat(rentalPricePerDay) : null,

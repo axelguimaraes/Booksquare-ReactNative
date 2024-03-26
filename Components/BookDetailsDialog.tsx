@@ -51,6 +51,11 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
     }
   }
 
+  const handleExpandImage = (index: number) => {
+    setCurrentIndex(index); // Set current index for the expanded image
+    // Additional logic to toggle between expanded and normal view
+  };
+
   return (
     <Modal
       visible={visible}
@@ -69,8 +74,11 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
           <View style={{ height: 350, marginTop: 20 }}>
             <Swiper>
               {book.photos.map((imageUrl, index) => (
-                <View key={index} style={{ flex: 1, height: '100%' }}>
+                <View key={index} style={{ flex: 1, height: '100%', position: 'relative' }}>
                   <Image source={{ uri: imageUrl }} style={styles.bookImage} resizeMode="cover" />
+                  <TouchableOpacity style={styles.expandIcon} onPress={() => handleExpandImage(index)}>
+                    <Ionicons name="expand" size={24} color="white" />
+                  </TouchableOpacity>
                 </View>
               ))}
             </Swiper>
@@ -98,9 +106,11 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
               ))}
             </View>
 
-            <TouchableOpacity style={styles.ownerContainer} onPress={handleOwnerClick}>
-              <Text style={styles.ownerContainerText}>Publicado por {book.currentOwner}</Text>
-            </TouchableOpacity>
+            {book.currentOwner && (
+              <TouchableOpacity style={styles.ownerContainer} onPress={handleOwnerClick}>
+                <Text style={styles.ownerContainerText}>Publicado por {book.currentOwner}</Text>
+              </TouchableOpacity>
+            )}
 
             {/* IconAndTextButton (Add to cart) */}
             {book.currentOwner === FIREBASE_AUTH.currentUser.displayName ? (<></>) :
@@ -125,7 +135,6 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
                   <Text style={styles.addToCartText}>Selecionar livro</Text>
                 </TouchableOpacity>
               )}
-
           </View>
         </View>
       </View>
@@ -227,6 +236,14 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  expandIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 5,
   },
 });
 
