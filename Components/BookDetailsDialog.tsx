@@ -70,7 +70,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
         const owner = await getUserByDisplayName(book.currentOwner);
 
         if (currentUser && owner) {
-            navigation.navigate('ChatScreen', { currentUser, otherUser: owner });
+            navigation.navigate('ChatScreen', { currentUser, otherUser: owner, book: book });
         } else {
             alert('Erro ao buscar utilizador!');
         }

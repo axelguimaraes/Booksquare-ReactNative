@@ -4,16 +4,18 @@ import getTimestampText from '../../Utils/getTimestampText';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { User } from '../../Models/User';
+import { Book } from '../../Models/Book';
 
 interface Props {
   currentUser: User;
   otherUser: User;
+  book: Book;
 }
 
 const ChatScreen: React.FC<Props> = () => {
   const navigation = useNavigation();
   const route = useRoute()
-  const { currentUser, otherUser } = route.params as { currentUser: User; otherUser: User };
+  const { currentUser, otherUser, book } = route.params as { currentUser: User; otherUser: User; book: Book };
 
   const [messages, setMessages] = useState([
     { id: '1', sender: 'user1', content: 'Olá!', timestamp: '2024-01-28T10:00:00' },
@@ -68,6 +70,15 @@ const ChatScreen: React.FC<Props> = () => {
           <Text style={styles.profileName}>{otherUser.displayName}</Text>
         </View>
       </View>
+
+      <View style={styles.bookContainer}>
+        <Image source={{ uri: book.photos[0] }} style={styles.image} />
+        <View style={styles.details}>
+          <Text style={styles.title}>{book.title}</Text>
+          <Text style={styles.price}>Preço: {book.price} €</Text>
+        </View>
+      </View>
+
       <FlatList
         data={messages.slice().reverse()}
         renderItem={renderItem}
@@ -177,6 +188,31 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  bookContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    backgroundColor: 'lightgrey',
+    padding: 10,
+    borderRadius: 10
+  },
+  image: {
+    width: 80,
+    height: 120,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  details: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  price: {
+    fontSize: 16,
+    color: '#888',
   },
 });
 

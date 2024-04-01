@@ -15,6 +15,7 @@ import TradeForm from '../Screens/Trade/TradeForm';
 import { FIREBASE_AUTH } from '../config/firebase';
 import ProfileOtherUsers from '../Screens/Profile/ProfileOtherUsers';
 import { User } from '../Models/User';
+import { Book } from '../Models/Book';
 
 export type StackNavigationParamsList = {
   Home: undefined
@@ -25,7 +26,7 @@ export type StackNavigationParamsList = {
   ProfileOtherUsers: { userId: string }
   Sell: undefined
   ShoppingCartScreen: undefined
-  ChatScreen: { currentUser: User, otherUser: User}
+  ChatScreen: { currentUser: User, otherUser: User, book: Book}
   RentForm: undefined
   TradeForm: undefined
 }
