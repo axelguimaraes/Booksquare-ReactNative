@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView, FlatList, ImageResizeMode, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Book, TransactionType } from '../Models/Book';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationParamsList } from '../Navigation/UserStack';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { getUserIdByDisplayName } from '../Services/UsersService';
+import { getUserByDisplayName, getUserById, getUserIdByDisplayName } from '../Services/UsersService';
 import { FIREBASE_AUTH } from '../config/firebase';
 import Swiper from 'react-native-swiper'
+import { User } from '../Models/User';
 
 interface Props {
   book: Book;
@@ -22,6 +23,8 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
   const [userId, setUserId] = useState<string | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+  const [sizeMode, setSizeMode] = useState<ImageResizeMode>("contain");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -51,10 +54,33 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
     }
   }
 
-  const handleExpandImage = (index: number) => {
-    setCurrentIndex(index); // Set current index for the expanded image
-    // Additional logic to toggle between expanded and normal view
+  const handleExpandImage = () => {
+    if (sizeMode == "cover") {
+      setSizeMode("contain")
+    }
+    if (sizeMode == "contain") {
+      setSizeMode("cover")
+    }
   };
+
+  const onContactButton = async () => {
+    setLoading(true);
+    try {
+        const currentUser = await getUserById(FIREBASE_AUTH.currentUser.uid);
+        const owner = await getUserByDisplayName(book.currentOwner);
+
+        if (currentUser && owner) {
+            navigation.navigate('ChatScreen', { currentUser, otherUser: owner });
+        } else {
+            alert('Erro ao buscar utilizador!');
+        }
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        alert('Erro ao buscar utilizador!');
+    }
+    setLoading(false);
+    onClose()
+  }
 
   return (
     <Modal
@@ -75,8 +101,8 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
             <Swiper>
               {book.photos.map((imageUrl, index) => (
                 <View key={index} style={{ flex: 1, height: '100%', position: 'relative' }}>
-                  <Image source={{ uri: imageUrl }} style={styles.bookImage} resizeMode="cover" />
-                  <TouchableOpacity style={styles.expandIcon} onPress={() => handleExpandImage(index)}>
+                  <Image source={{ uri: imageUrl }} style={styles.bookImage} resizeMode={sizeMode} />
+                  <TouchableOpacity style={styles.expandIcon} onPress={() => handleExpandImage()}>
                     <Ionicons name="expand" size={24} color="white" />
                   </TouchableOpacity>
                 </View>
@@ -115,18 +141,32 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
             {/* IconAndTextButton (Add to cart) */}
             {book.currentOwner === FIREBASE_AUTH.currentUser.displayName ? (<></>) :
               hasTransactionType ? (
-                <TouchableOpacity
-                  style={styles.addToCartButton}
-                  onPress={onActionButton}
-                >
-                  <Ionicons name="add" size={24} color="white" />
-                  <Text style={styles.addToCartText}>
-                    {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
-                      book.transactionType === TransactionType.RENTAL ? 'Alugar' :
-                        'Trocar'
-                    }
-                  </Text>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    style={styles.addToCartButton}
+                    onPress={onContactButton}
+                  >
+                    {loading ? (<ActivityIndicator size="large" color="white" />) : (
+                      <>
+                        <Ionicons name="chatbox-ellipses-outline" size={24} color="white" />
+                        <Text style={styles.addToCartText}>Contactar vendedor</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  <View style={{ paddingVertical: 5 }}></View>
+                  <TouchableOpacity
+                    style={styles.addToCartButton}
+                    onPress={onActionButton}
+                  >
+                    <Ionicons name="add" size={24} color="white" />
+                    <Text style={styles.addToCartText}>
+                      {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
+                        book.transactionType === TransactionType.RENTAL ? 'Alugar' :
+                          'Trocar'
+                      }
+                    </Text>
+                  </TouchableOpacity>
+                </>
               ) : (
                 <TouchableOpacity
                   style={styles.addToCartButton}

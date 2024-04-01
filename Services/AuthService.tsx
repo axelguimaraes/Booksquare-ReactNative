@@ -43,7 +43,7 @@ export const registerWithEmailAndPassword = async (email, password, displayName)
         await updateProfile(user, { displayName: displayName })
 
         const newUser: User = {
-            id: user.uid,
+            userId: user.uid,
             displayName: displayName,
             email: email
         }

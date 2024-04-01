@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import { CollectionReference, DocumentData, Query, addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { User } from "../Models/User";
 import { FIREBASE_DB } from "../config/firebase";
 
@@ -14,34 +14,41 @@ export const addUser = async (userData: User): Promise<void> => {
 
 export const getUserById = async (userId: string): Promise<User | null> => {
   try {
-    const userDoc = await getDoc(doc(FIREBASE_DB, 'users', userId))
-    if (userDoc.exists()) {
-      return { id: userDoc.id, ...userDoc.data() } as User
-    } else {
-      console.log('No such document')
-      return null
+    const usersCollection = collection(FIREBASE_DB, 'users');
+    let usersQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
+    usersQuery = query(usersCollection, where('userId', '==', userId))
+    const querySnapshot = await getDocs(usersQuery)
+
+    if (querySnapshot.empty) {
+      console.log('No matching documents.');
+      return null;
     }
+
+    const userData = querySnapshot.docs[0].data() as User;
+    return userData;
   } catch (error) {
-    console.error('Error getting user: ', error);
-    throw new Error('Error getting user');
+    console.error('Error getting user by ID:', error);
+    throw new Error('Error getting user by ID');
   }
 };
 
 // Function to get a user from Firestore by display name
 export const getUserByDisplayName = async (displayName: string): Promise<User | null> => {
   try {
-    const usersRef = collection(FIREBASE_DB, 'users');
-    const q = query(usersRef, where('displayName', '==', displayName));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      const userData = querySnapshot.docs[0].data() as User;
-      return { id: querySnapshot.docs[0].id, ...userData };
-    } else {
-      console.log('No user found with the specified display name');
+    const usersCollection = collection(FIREBASE_DB, 'users');
+    let usersQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
+    usersQuery = query(usersCollection, where('displayName', '==', displayName))
+    const querySnapshot = await getDocs(usersQuery)
+
+    if (querySnapshot.empty) {
+      console.log('No matching documents.');
       return null;
     }
+
+    const userData = querySnapshot.docs[0].data() as User;
+    return userData;
   } catch (error) {
-    console.error('Error getting user by display name: ', error);
+    console.error('Error getting user by display name:', error);
     throw new Error('Error getting user by display name');
   }
 };

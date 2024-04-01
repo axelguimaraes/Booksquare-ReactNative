@@ -29,6 +29,20 @@ const ChatScreen: React.FC<Props> = () => {
     </View>
   );
 
+  const renderProfilePhoto = () => {
+    if (otherUser.profilePhoto) {
+      return (
+        <Image source={{ uri: otherUser.profilePhoto }} style={styles.profilePhoto} />
+      );
+    } else {
+      return (
+        <View style={styles.profilePhotoPlaceholder}>
+          <Ionicons name="person-circle-outline" size={40} color="#ccc" />
+        </View>
+      );
+    }
+  };
+
   const sendMessage = () => {
     if (inputMessage.trim() !== '') {
       const newMessage = {
@@ -50,7 +64,7 @@ const ChatScreen: React.FC<Props> = () => {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <View style={styles.profileInfo}>
-          <Image source={{ uri: otherUser.profilePhoto }} style={styles.profilePhoto} />
+          {renderProfilePhoto()}
           <Text style={styles.profileName}>{otherUser.displayName}</Text>
         </View>
       </View>
@@ -99,6 +113,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 10,
     marginLeft: 20
+  },
+  profilePhotoPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+    marginLeft: 20,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   profileName: {
     fontSize: 16,
