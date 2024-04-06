@@ -1,4 +1,5 @@
-interface SingleMessage {
+export interface SingleMessage {
+    messageID: string
     senderID: string,
     receiverID: string,
     content: string;
@@ -8,5 +9,7 @@ interface SingleMessage {
 
 export interface Chat {
     id: string,
+    user1: string,
+    user2: string,
     messageThread: SingleMessage[]
 }
