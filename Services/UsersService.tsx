@@ -80,6 +80,32 @@ export const updateUser = async (userId: string, userData: Partial<User>): Promi
   }
 };
 
+export const updateUserById = async (userId: string, userData: Partial<User>): Promise<void> => {
+  try {
+    // Construct a query to find the user document based on userId
+    const usersRef = collection(FIREBASE_DB, 'users');
+    const userQuery = query(usersRef, where('userId', '==', userId));
+
+    // Execute the query to find the document
+    const querySnapshot = await getDocs(userQuery);
+
+    // If there is a matching document, update it
+    if (!querySnapshot.empty) {
+      // Get the document reference from the query snapshot
+      const userDocRef = doc(FIREBASE_DB, 'users', querySnapshot.docs[0].id);
+
+      // Update the document with the provided data
+      await updateDoc(userDocRef, userData);
+      console.log('User updated successfully');
+    } else {
+      console.log('No matching document found for userId:', userId);
+    }
+  } catch (error) {
+    console.error('Error updating user: ', error);
+    throw new Error('Error updating user');
+  }
+};
+
 // Function to delete a user from Firestore
 export const deleteUser = async (userId: string): Promise<void> => {
   try {

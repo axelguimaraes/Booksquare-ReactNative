@@ -123,7 +123,7 @@ const ChatScreen: React.FC<Props> = () => {
       <FlatList
         data={messages.slice().reverse()}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.messageID}
         inverted
       />
       <View style={styles.inputContainer}>
