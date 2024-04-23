@@ -131,3 +131,40 @@ export const sendSingleMessage = async (chat: Chat, newMessage: SingleMessage): 
   }
 };
 
+export const markAllMessagesAsRead = async (chatId: string, userId: string): Promise<void> => {
+  try {
+    // Query for the chat documents where the chat ID matches
+    const chatQuery = query(collection(FIREBASE_DB, 'chats'), where('id', '==', chatId));
+
+    // Fetch the chat documents
+    const chatSnapshot = await getDocs(chatQuery);
+
+    // Check if any chat documents are found
+    if (chatSnapshot.empty) {
+      console.error('No chat found with ID:', chatId);
+      return;
+    }
+
+    // Update each chat document where the user is the receiver
+    chatSnapshot.forEach(async chatDoc => {
+      const chatData = chatDoc.data() as Chat;
+
+      // Update only the messages where the current user is the receiver
+      const updatedMessageThread = chatData.messageThread.map(message => {
+        if (message.receiverID === userId && !message.isRead) {
+          return { ...message, isRead: true };
+        } else {
+          return message;
+        }
+      });
+
+      // Update the chat document with the updated message thread
+      await updateDoc(chatDoc.ref, { messageThread: updatedMessageThread });
+    });
+
+    console.log('All messages marked as read successfully.');
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+    throw error;
+  }
+};

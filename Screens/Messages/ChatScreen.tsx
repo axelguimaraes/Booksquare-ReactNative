@@ -5,7 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { User } from '../../Models/User';
 import { Book } from '../../Models/Book';
-import { getChat, sendSingleMessage, subscribeToChat } from '../../Services/ChatService';
+import { getChat, markAllMessagesAsRead, sendSingleMessage, subscribeToChat } from '../../Services/ChatService';
 import { Chat, SingleMessage } from '../../Models/Chat';
 import uuid from 'react-native-uuid';
 import { getUserById } from '../../Services/UsersService';
@@ -68,13 +68,19 @@ const ChatScreen: React.FC<Props> = () => {
     }
   }, [user1, user2]);
 
-
   useEffect(() => {
     // Update messages state when currentChat changes
     if (currentChat) {
       setMessages(currentChat.messageThread);
     }
   }, [currentChat]);
+
+  useEffect(() => {
+    if (user1 && user2 && currentChat) {
+      markAllMessagesAsRead(currentChat.id, FIREBASE_AUTH.currentUser.uid)
+        .catch(error => console.error('Error marking messages as read:', error));
+    }
+  }, [user1, user2, currentChat])
 
   const renderItem = ({ item }) => (
     <View key={item.messageID} style={item.senderID === user1.userId ? styles.userMessageContainer : styles.otherMessageContainer}>

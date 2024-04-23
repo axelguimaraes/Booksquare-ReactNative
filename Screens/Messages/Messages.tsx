@@ -22,7 +22,7 @@ const Messages = ({ navigation }) => {
     };
 
     fetchMessages();
-  }, []);
+  }, [chats]);
 
   return (
     <View style={styles.container}>
