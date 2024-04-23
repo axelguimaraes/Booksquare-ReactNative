@@ -15,13 +15,17 @@ const WelcomeScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   }
 
   const handleEnterAsGuest = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      loginAnonymously()
+      await loginAnonymously();
+    } catch (error) {
+      console.error('Error logging in anonymously:', error);
+      // Handle error, e.g., display an alert
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
+
 
   const handleRegister = () => {
     navigation.navigate('RegisterScreen')
@@ -36,24 +40,24 @@ const WelcomeScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       </View>
 
       {/* Login Buttons */}
-      {loading ? <ActivityIndicator size="large" color="white" />
-        :
-        <>
-          <View style={styles.loginContainer}>
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Entrar</Text>
-            </TouchableOpacity>
 
+      <View style={styles.loginContainer}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Entrar</Text>
+        </TouchableOpacity>
+
+        {loading ? <ActivityIndicator size="large" color="white" />
+          : <>
             <TouchableOpacity style={styles.button} onPress={handleEnterAsGuest}>
               <Text style={styles.buttonText}>Entrar como convidado</Text>
             </TouchableOpacity>
+          </>
+        }
+        <TouchableOpacity onPress={handleRegister}>
+          <Text style={styles.registerText}>Não tem uma conta? Registe-se</Text>
+        </TouchableOpacity>
+      </View>
 
-            <TouchableOpacity onPress={handleRegister}>
-              <Text style={styles.registerText}>Não tem uma conta? Registe-se</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      }
     </View>
   );
 };

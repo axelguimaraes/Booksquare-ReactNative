@@ -1,39 +1,83 @@
-import React from 'react';
-import { View, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import ChatCard from '../../Components/ChatCard';
 import { getUserById } from '../../Services/UsersService';
+import { Chat } from '../../Models/Chat';
+import { User } from '../../Models/User';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 const MessagesList = ({ data, navigation, currentUser }) => {
-  const handleCardPress = (message) => {
-    navigation.navigate('ChatScreen', { message });
+  const [otherUsers, setOtherUsers] = useState<{ [userId: string]: User }>({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchOtherUsers = async () => {
+    const users = {};
+    for (const chat of data) {
+      const otherUserId = chat.user1 === currentUser.uid ? chat.user2 : chat.user1;
+      if (!otherUsers[otherUserId]) {
+        try {
+          const user = await getUserById(otherUserId);
+          users[otherUserId] = user;
+        } catch (error) {
+          console.error('Error fetching user:', error);
+        }
+      }
+    }
+    setOtherUsers(prevState => ({ ...prevState, ...users }));
+    setLoading(false);
   };
 
-  return (
-    <View>
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => {
-          const otherUserId = item.messageThread[0].senderID === currentUser.id ? item.messageThread[0].receiverID : item.messageThread[0].senderID;
-          const otherUser = getUserById(otherUserId);
-          const isCurrentUser = currentUser.id === otherUserId; // Determine if the current user is the sender or receiver
+  useEffect(() => {
+    fetchOtherUsers();
+  }, [data, currentUser]);
 
-          return (
-            <TouchableOpacity onPress={() => handleCardPress(item)}>
-              <ChatCard
-                profilePhoto={otherUser.profilePhoto}
-                username={otherUser.username}
-                messageSnippet={item.messageThread[item.messageThread.length - 1].content}
-                timestamp={item.messageThread[item.messageThread.length - 1].timestamp}
-                isRead={item.messageThread[item.messageThread.length - 1].isRead}
-                isCurrentUser={isCurrentUser} // Pass isCurrentUser prop to ChatCard
-              />
-            </TouchableOpacity>
-          );
-        }}
-      />
-    </View>
+  const handleCardPress = (item) => {
+    if (item.user1 == FIREBASE_AUTH.currentUser.uid) {
+      navigation.navigate('ChatScreen', { currentUser: item.user1, otherUser: item.user2}); // User IDs
+    } else {
+      navigation.navigate('ChatScreen', { currentUser: item.user2, otherUser: item.user1}); // User IDs
+    }
+    
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="grey" />
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      data={data}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => {
+        const otherUserId = item.user1 === currentUser.uid ? item.user2 : item.user1;
+        const otherUser = otherUsers[otherUserId];
+        return otherUser ? (
+          <TouchableOpacity onPress={() => handleCardPress(item)}>
+            <ChatCard
+              profilePhoto={otherUser.profilePhoto}
+              username={otherUser.displayName}
+              messageSnippet={item.messageThread[item.messageThread.length - 1].content}
+              timestamp={item.messageThread[item.messageThread.length - 1].timestamp}
+              isRead={item.messageThread[item.messageThread.length - 1].isRead}
+              isCurrentUser={currentUser.id === otherUserId}
+            />
+          </TouchableOpacity>
+        ) : null;
+      }}
+    />
   );
 };
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default MessagesList;

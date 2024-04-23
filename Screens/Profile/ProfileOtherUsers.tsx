@@ -1,28 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import BottomBar from '../../Components/BottomBar';
 import { Ionicons } from '@expo/vector-icons';
-import { FIREBASE_AUTH } from '../../config/firebase';
 import { User } from '../../Models/User';
-import { getUserById } from '../../Services/UsersService';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationParamsList } from '../../Navigation/UserStack';
+import { getUserByDisplayName, getUserById } from '../../Services/UsersService';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
-const UserProfileScreen = ({ navigation }) => {
-  const [currentUser, setCurrentUser] = useState<User>(null)
+type ProfileOtherUsersNavigationProp = StackNavigationProp<StackNavigationParamsList, 'ProfileOtherUsers'>;
+type ProfileOtherUsersRouteProp = RouteProp<StackNavigationParamsList, 'ProfileOtherUsers'>;
 
-  const user = FIREBASE_AUTH.currentUser
-  const isAnonymous = FIREBASE_AUTH.currentUser.isAnonymous ? true : false;
+type Props = {
+  navigation: ProfileOtherUsersNavigationProp;
+  route: ProfileOtherUsersRouteProp;
+};
+
+const ProfileOtherUsers: React.FC<Props> = ({ navigation, route }) => {
+  const { userId } = route.params;
+
+  const [user, setUser] = useState<User>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAnonymous) {
-      getUserById(user?.uid).then((res: User) => setCurrentUser(res)).catch(console.error);
-    }
-  }, [user])
+    getUserById(userId)
+      .then((userData) => {
+        setUser(userData)
+        setLoading(false);
+      });
+  }, [userId]);
 
-  const handleLogout = () => {
-    FIREBASE_AUTH.signOut()
-      .then(() => {
-        alert('A sua sessão foi terminada')
-      })
+  const handleMessageButton = async () => {
+    if (loading) return
+    let currentUser: User;
+    await getUserById(FIREBASE_AUTH.currentUser.uid).then((user) => currentUser = user)
+
+    navigation.navigate('ChatScreen', { currentUser: currentUser.userId, otherUser: user.userId, book: null });
   }
 
   const renderListItem = ({ item }) => (
@@ -37,37 +51,25 @@ const UserProfileScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Perfil</Text>
-        {user && !user.isAnonymous ? (
-          <TouchableOpacity onPress={() => console.log('Edit Profile')}>
-            <Ionicons name="pencil" size={24} />
-          </TouchableOpacity>
-        ) : (
-          <View></View>
-        )}
+        <View></View>
       </View>
 
-      {isAnonymous ? (
-        <View style={styles.anonymousContainer}>
-          <Text style={styles.anonymousText}>Utilizador convidado</Text>
-          <Text style={{ fontSize: 20, textAlign: 'center', color: 'grey' }}>Inicie sessão com uma conta para benificiar de todas as funcionalidades</Text>
-          {/* Add any additional content for anonymous user */}
-        </View>
+      {loading ? (
+        <ActivityIndicator size="large" color="#8C756A" />
       ) : (
         <>
           {/* Profile */}
-          <View style={styles.profileContainer}>
-            {(currentUser && currentUser.profilePhoto) ? (
-              <Image source={{ uri: currentUser.profilePhoto }} style={styles.profilePhoto} />
-            ) : (
-              <View style={styles.profilePhoto}>
-                <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+          {
+            user && ( // Conditionally render profile when user is not null
+              <View style={styles.profileContainer}>
+                <Image source={{ uri: 'https://via.placeholder.com/150/foto1.jpg' }} style={styles.profilePhoto} />
+                <View style={styles.profileInfo}>
+                  <Text style={styles.name}>{user.displayName}</Text>
+                  <Text style={styles.email}>{user.email}</Text>
+                </View>
               </View>
-            )}
-            <View style={styles.profileInfo}>
-              <Text style={styles.name}>{user.displayName}</Text>
-              <Text style={styles.email}>{user.email}</Text>
-            </View>
-          </View>
+            )
+          }
 
           {/* Lazy List */}
           <View style={styles.lazyListContainer}>
@@ -78,14 +80,16 @@ const UserProfileScreen = ({ navigation }) => {
               keyExtractor={(item, index) => index.toString()}
             />
           </View>
-        </>
-      )
-      }
 
-      {/* Logout Button */}
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Terminar sessão</Text>
-      </TouchableOpacity>
+          {/* Logout Button */}
+          <TouchableOpacity style={styles.messageButton} onPress={handleMessageButton}>
+            <Text style={styles.messageText}>Enviar mensagem</Text>
+            <View style={{ paddingLeft: 30 }}>
+              <Ionicons name='chatbox-ellipses-outline' color='white' size={25} />
+            </View>
+          </TouchableOpacity>
+        </>
+      )}
 
       {/* Bottom Bar */}
       <BottomBar navigation={navigation} />
@@ -156,15 +160,16 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
   },
-  logoutButton: {
+  messageButton: {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#8C756A',
+    flexDirection: 'row',
     padding: 15,
     borderRadius: 10,
     marginTop: 15
   },
-  logoutText: {
+  messageText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
@@ -181,4 +186,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UserProfileScreen;
+export default ProfileOtherUsers;

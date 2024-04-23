@@ -36,7 +36,7 @@ const RegisterScreen = ({ navigation }) => {
 
         setLoading(true)
         try {
-            registerWithEmailAndPassword(email, password, username)
+            await registerWithEmailAndPassword(email, password, username)
         } finally {
             setLoading(false)
         }
@@ -66,6 +66,7 @@ const RegisterScreen = ({ navigation }) => {
                         value={username}
                         onChangeText={handleUsernameChange}
                         placeholder="Nome de utilizador"
+                        autoCapitalize='none'
                     />
                     <TextInput
                         style={styles.input}
@@ -73,6 +74,7 @@ const RegisterScreen = ({ navigation }) => {
                         onChangeText={handlePasswordChange}
                         placeholder="Palavra-passe"
                         secureTextEntry={true}
+                        autoCapitalize='none'
                     />
                     <TextInput
                         style={styles.input}
@@ -80,6 +82,7 @@ const RegisterScreen = ({ navigation }) => {
                         onChangeText={handlePasswordConfirmChange}
                         placeholder="Confirmar palavra-passe"
                         secureTextEntry={true}
+                        autoCapitalize='none'
                     />
                     {loading ? <ActivityIndicator size="large" color="white" />
                         :
