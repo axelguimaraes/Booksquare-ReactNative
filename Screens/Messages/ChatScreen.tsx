@@ -97,7 +97,7 @@ const ChatScreen: React.FC<Props> = () => {
     } else {
       return (
         <View style={styles.profilePhotoPlaceholder}>
-          <Ionicons name="person-circle-outline" size={40} color="#ccc" />
+          <Ionicons name="person-circle-outline" size={50} color="#ccc" />
         </View>
       );
     }
@@ -203,14 +203,13 @@ const styles = StyleSheet.create({
     marginLeft: 20
   },
   profilePhotoPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-    marginLeft: 20,
-    backgroundColor: '#ccc',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginHorizontal: 10,
+    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   profileName: {
     fontSize: 16,

@@ -33,10 +33,10 @@ const ProfileOtherUsers: React.FC<Props> = ({ navigation, route }) => {
 
   const handleMessageButton = async () => {
     if (loading) return
-    let currentUser;
+    let currentUser: User;
     await getUserById(FIREBASE_AUTH.currentUser.uid).then((user) => currentUser = user)
 
-    navigation.navigate('ChatScreen', { currentUser: currentUser, otherUser: user });
+    navigation.navigate('ChatScreen', { currentUser: currentUser.userId, otherUser: user.userId, book: null });
   }
 
   const renderListItem = ({ item }) => (

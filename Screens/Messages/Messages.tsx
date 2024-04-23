@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import MessagesList from './MessagesList';
@@ -28,7 +28,11 @@ const Messages = ({ navigation }) => {
     <View style={styles.container}>
       <TopBar navigation={navigation} />
       <View style={styles.content}>
-        <MessagesList data={chats} navigation={navigation} currentUser={FIREBASE_AUTH.currentUser} />
+        {chats.length !== 0 ? (
+          <MessagesList data={chats} navigation={navigation} currentUser={FIREBASE_AUTH.currentUser} />
+        ):(
+          <ActivityIndicator size='large' color='grey' />
+        )}
       </View>
       <BottomBar navigation={navigation} />
     </View>

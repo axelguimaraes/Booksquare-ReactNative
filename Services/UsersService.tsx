@@ -59,7 +59,8 @@ export const getUserIdByDisplayName = async (displayName: string): Promise<strin
     const q = query(usersRef, where('displayName', '==', displayName));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
-      return querySnapshot.docs[0].id;
+      const userData = querySnapshot.docs[0].data();
+      return userData.userId;
     } else {
       console.log('No user found with the specified display name');
       return null;

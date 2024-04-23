@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet } from 'react-native';
 import BottomBar from '../../Components/BottomBar';
 import { Ionicons } from '@expo/vector-icons';
 import { FIREBASE_AUTH } from '../../config/firebase';
+import { User } from '../../Models/User';
+import { getUserById } from '../../Services/UsersService';
 
 const UserProfileScreen = ({ navigation }) => {
-  const user = FIREBASE_AUTH.currentUser
+  const [currentUser, setCurrentUser] = useState<User>(null)
 
+  const user = FIREBASE_AUTH.currentUser
   const isAnonymous = FIREBASE_AUTH.currentUser.isAnonymous ? true : false;
+
+  useEffect(() => {
+    if (!isAnonymous) {
+      getUserById(user?.uid).then((res: User) => setCurrentUser(res)).catch(console.error);
+    }
+  }, [user])
 
   const handleLogout = () => {
     FIREBASE_AUTH.signOut()
@@ -47,7 +56,13 @@ const UserProfileScreen = ({ navigation }) => {
         <>
           {/* Profile */}
           <View style={styles.profileContainer}>
-            <Image source={{ uri: 'https://via.placeholder.com/150/foto1.jpg' }} style={styles.profilePhoto} />
+            {(currentUser && currentUser.profilePhoto) ? (
+              <Image source={{ uri: currentUser.profilePhoto }} style={styles.profilePhoto} />
+            ) : (
+              <View style={styles.profilePhoto}>
+                <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+              </View>
+            )}
             <View style={styles.profileInfo}>
               <Text style={styles.name}>{user.displayName}</Text>
               <Text style={styles.email}>{user.email}</Text>
@@ -64,7 +79,8 @@ const UserProfileScreen = ({ navigation }) => {
             />
           </View>
         </>
-      )}
+      )
+      }
 
       {/* Logout Button */}
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>

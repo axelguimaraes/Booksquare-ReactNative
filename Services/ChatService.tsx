@@ -162,7 +162,6 @@ export const markAllMessagesAsRead = async (chatId: string, userId: string): Pro
       await updateDoc(chatDoc.ref, { messageThread: updatedMessageThread });
     });
 
-    console.log('All messages marked as read successfully.');
   } catch (error) {
     console.error('Error marking messages as read:', error);
     throw error;
