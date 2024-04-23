@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import getTimestampText from '../../Utils/getTimestampText';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,8 @@ import { Book } from '../../Models/Book';
 import { getChat, sendSingleMessage, subscribeToChat } from '../../Services/ChatService';
 import { Chat, SingleMessage } from '../../Models/Chat';
 import uuid from 'react-native-uuid';
+import { getUserById } from '../../Services/UsersService';
+import { FIREBASE_AUTH } from '../../config/firebase';
 
 interface Props {
   currentUser: User;
@@ -18,32 +20,54 @@ interface Props {
 const ChatScreen: React.FC<Props> = () => {
   const navigation = useNavigation();
   const route = useRoute()
-  const { currentUser, otherUser, book } = route.params as { currentUser: User; otherUser: User; book: Book };
+  const { currentUser, otherUser, book } = route.params as { currentUser: string; otherUser: string; book: Book };
 
   const [messages, setMessages] = useState<SingleMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentChat, setCurrentChat] = useState<Chat>(null)
+  const [user1, setUser1] = useState<User>()
+  const [user2, setUser2] = useState<User>()
 
   useEffect(() => {
-    setLoading(true)
-    const fetchChat = async () => {
+    setLoading(true);
+
+    const fetchUsers = async () => {
       try {
-        const fetchedChat: Chat = await getChat(currentUser.userId, otherUser.userId);
-        setCurrentChat(fetchedChat);
-        setLoading(false); // Set loading to false after fetching books
-        const unsubscribe = subscribeToChat(currentUser.userId, otherUser.userId, (updatedChat: Chat | null) => {
-          setCurrentChat(updatedChat);
-        });
-        return unsubscribe;
+        const fetchedUser1 = await getUserById(currentUser);
+        const fetchedUser2 = await getUserById(otherUser);
+        setUser1(fetchedUser1);
+        setUser2(fetchedUser2);
       } catch (error) {
-        console.error('Error fetching books:', error);
-        setLoading(false); // Set loading to false in case of error
+        console.error('Error fetching users:', error);
+        setLoading(false);
       }
     };
 
-    fetchChat();
-  }, []);
+    fetchUsers();
+  }, [currentUser, otherUser]);
+
+  useEffect(() => {
+    if (user1 && user2) {
+      const fetchChat = async () => {
+        try {
+          const fetchedChat: Chat = await getChat(currentUser, otherUser);
+          setCurrentChat(fetchedChat);
+          setLoading(false);
+          const unsubscribe = subscribeToChat(user1.userId, user2.userId, (updatedChat: Chat | null) => {
+            setCurrentChat(updatedChat);
+          });
+          return unsubscribe;
+        } catch (error) {
+          console.error('Error fetching chat:', error);
+          setLoading(false);
+        }
+      };
+
+      fetchChat();
+    }
+  }, [user1, user2]);
+
 
   useEffect(() => {
     // Update messages state when currentChat changes
@@ -53,16 +77,16 @@ const ChatScreen: React.FC<Props> = () => {
   }, [currentChat]);
 
   const renderItem = ({ item }) => (
-    <View key={item.messageID} style={item.senderID === currentUser.userId ? styles.userMessageContainer : styles.otherMessageContainer}>
+    <View key={item.messageID} style={item.senderID === user1.userId ? styles.userMessageContainer : styles.otherMessageContainer}>
       <Text style={styles.message}>{item.content}</Text>
       <Text style={styles.timestamp}>{getTimestampText(item.timestamp)}</Text>
     </View>
   );
 
   const renderProfilePhoto = () => {
-    if (otherUser.profilePhoto) {
+    if (user2.profilePhoto) {
       return (
-        <Image source={{ uri: otherUser.profilePhoto }} style={styles.profilePhoto} />
+        <Image source={{ uri: user2.profilePhoto }} style={styles.profilePhoto} />
       );
     } else {
       return (
@@ -77,8 +101,8 @@ const ChatScreen: React.FC<Props> = () => {
     if (inputMessage.trim() !== '') {
       const newMessage = {
         messageID: uuid.v4().toString(),
-        senderID: currentUser.userId,
-        receiverID: otherUser.userId,
+        senderID: user1.userId,
+        receiverID: user2.userId,
         content: inputMessage.trim(),
         timestamp: new Date().toISOString(),
         isRead: false,
@@ -93,6 +117,10 @@ const ChatScreen: React.FC<Props> = () => {
     }
   };
 
+  if (!user1 || !user2) {
+    // Render a loading indicator or return null if user data is not yet available
+    return <ActivityIndicator size="large" color="grey" />;
+  }
 
   return (
     <View style={styles.container}>
@@ -103,22 +131,24 @@ const ChatScreen: React.FC<Props> = () => {
         </TouchableOpacity>
         <View style={styles.profileInfo}>
           {renderProfilePhoto()}
-          <Text style={styles.profileName}>{otherUser.displayName}</Text>
+          <Text style={styles.profileName}>{user2.displayName}</Text>
         </View>
       </View>
 
-      <View style={styles.bookContainer}>
-        <Image source={{ uri: book.photos[0] }} style={styles.image} />
-        <View style={styles.details}>
-          <Text style={styles.title}>{book.title}</Text>
-          {book.price &&
-            <Text style={styles.price}>Preço: {book.price} €</Text>
-          }
-          {book.rentalPricePerDay &&
-            <Text style={styles.price}>Preço por dia: {book.rentalPricePerDay} €</Text>
-          }
+      {book &&
+        <View style={styles.bookContainer}>
+          <Image source={{ uri: book.photos[0] }} style={styles.image} />
+          <View style={styles.details}>
+            <Text style={styles.title}>{book.title}</Text>
+            {book.price &&
+              <Text style={styles.price}>Preço: {book.price} €</Text>
+            }
+            {book.rentalPricePerDay &&
+              <Text style={styles.price}>Preço por dia: {book.rentalPricePerDay} €</Text>
+            }
+          </View>
         </View>
-      </View>
+      }
 
       <FlatList
         data={messages.slice().reverse()}

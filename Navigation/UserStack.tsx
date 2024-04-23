@@ -26,7 +26,7 @@ export type StackNavigationParamsList = {
   ProfileOtherUsers: { userId: string }
   Sell: undefined
   ShoppingCartScreen: undefined
-  ChatScreen: { currentUser: User, otherUser: User, book: Book}
+  ChatScreen: { currentUser: string, otherUser: string, book: Book}
   RentForm: undefined
   TradeForm: undefined
 }

@@ -4,6 +4,7 @@ import uuid from 'react-native-uuid'
 import { updateUserById } from "./UsersService";
 import firebase from "firebase/compat";
 import { Chat, SingleMessage } from "../Models/Chat";
+import { User } from "../Models/User";
 
 export const getChat = async (userId: string, otherUserId: string): Promise<Chat | null> => {
   try {
@@ -29,6 +30,40 @@ export const getChat = async (userId: string, otherUserId: string): Promise<Chat
     throw new Error('Error fetching chat');
   }
 };
+
+export const getAllUserChats = async (userId: string): Promise<Chat[]> => {
+  try {
+    // Fetch the user document
+    const userQuery = query(collection(FIREBASE_DB, 'users'), where('userId', '==', userId));
+    const userSnapshot = await getDocs(userQuery);
+
+    if (userSnapshot.empty) {
+      throw new Error('User not found');
+    }
+
+    // Extract the user's chatID array
+    const userData = userSnapshot.docs[0].data() as User;
+    const chatIDs = userData.chatID || [];
+
+    // Fetch all chats where chatId is in the user's chatID array
+    const chats: Chat[] = [];
+    for (const chatId of chatIDs) {
+      const chatQuery = query(collection(FIREBASE_DB, 'chats'), where('id', '==', chatId));
+      const chatSnapshot = await getDocs(chatQuery);
+
+      chatSnapshot.forEach(doc => {
+        const chatData = doc.data() as Chat;
+        chats.push({ id: doc.id, ...chatData });
+      });
+    }
+
+    return chats;
+  } catch (error) {
+    console.error('Error fetching chats for user:', error);
+    throw new Error('Error fetching chats for user');
+  }
+};
+
 
 export const subscribeToChat = (userId: string, otherUserId: string, onUpdate: (chat: Chat | null) => void) => {
   const chatsRef = collection(FIREBASE_DB, 'chats');

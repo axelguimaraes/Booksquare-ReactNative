@@ -66,11 +66,11 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
   const onContactButton = async () => {
     setLoading(true);
     try {
-        const currentUser = await getUserById(FIREBASE_AUTH.currentUser.uid);
+        //const currentUser = await getUserById(FIREBASE_AUTH.currentUser.uid);
         const owner = await getUserByDisplayName(book.currentOwner);
 
-        if (currentUser && owner) {
-            navigation.navigate('ChatScreen', { currentUser, otherUser: owner, book: book });
+        if (owner) {
+            navigation.navigate('ChatScreen', { currentUser: FIREBASE_AUTH.currentUser.uid, otherUser: owner.userId, book: book });
         } else {
             alert('Erro ao buscar utilizador!');
         }

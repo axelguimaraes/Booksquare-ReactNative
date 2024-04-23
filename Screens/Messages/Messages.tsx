@@ -3,24 +3,24 @@ import { View, StyleSheet } from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import MessagesList from './MessagesList';
-import { getMessagesByUserId } from '../../Services/MessagesService';
 import { getUserById } from '../../Services/UsersService';
+import { Chat } from '../../Models/Chat';
+import { FIREBASE_AUTH } from '../../config/firebase';
+import { getAllUserChats, getChat } from '../../Services/ChatService';
 
 const Messages = ({ navigation }) => {
-  const [messages, setMessages] = useState([]); 
+  const [chats, setChats] = useState<Chat[]>([]);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const userId = 1;
-        const userMessages = getMessagesByUserId(userId);
-        setMessages(userMessages);
+        const userChats = await getAllUserChats(FIREBASE_AUTH.currentUser.uid);
+        setChats(userChats);
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Error retrieving chats:', error);
       }
     };
 
-    console.log("Messages:", messages)
     fetchMessages();
   }, []);
 
@@ -28,7 +28,7 @@ const Messages = ({ navigation }) => {
     <View style={styles.container}>
       <TopBar navigation={navigation} />
       <View style={styles.content}>
-        <MessagesList data={messages} navigation={navigation} currentUser={getUserById(1)}/>
+        <MessagesList data={chats} navigation={navigation} currentUser={FIREBASE_AUTH.currentUser} />
       </View>
       <BottomBar navigation={navigation} />
     </View>
