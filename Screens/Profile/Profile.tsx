@@ -46,46 +46,48 @@ const UserProfileScreen = ({ navigation }) => {
         )}
       </View>
 
-      {isAnonymous ? (
-        <View style={styles.anonymousContainer}>
-          <Text style={styles.anonymousText}>Utilizador convidado</Text>
-          <Text style={{ fontSize: 20, textAlign: 'center', color: 'grey' }}>Inicie sessão com uma conta para benificiar de todas as funcionalidades</Text>
-          {/* Add any additional content for anonymous user */}
-        </View>
-      ) : (
-        <>
-          {/* Profile */}
-          <View style={styles.profileContainer}>
-            {(currentUser && currentUser.profilePhoto) ? (
-              <Image source={{ uri: currentUser.profilePhoto }} style={styles.profilePhoto} />
-            ) : (
-              <View style={styles.profilePhoto}>
-                <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+      <View style={styles.containerInside}>
+        {isAnonymous ? (
+          <View style={styles.anonymousContainer}>
+            <Text style={styles.anonymousText}>Utilizador convidado</Text>
+            <Text style={{ fontSize: 20, textAlign: 'center', color: 'grey' }}>Inicie sessão com uma conta para benificiar de todas as funcionalidades</Text>
+            {/* Add any additional content for anonymous user */}
+          </View>
+        ) : (
+          <>
+            {/* Profile */}
+            <View style={styles.profileContainer}>
+              {(currentUser && currentUser.profilePhoto) ? (
+                <Image source={{ uri: currentUser.profilePhoto }} style={styles.profilePhoto} />
+              ) : (
+                <View style={styles.profilePhoto}>
+                  <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+                </View>
+              )}
+              <View style={styles.profileInfo}>
+                <Text style={styles.name}>{user.displayName}</Text>
+                <Text style={styles.email}>{user.email}</Text>
               </View>
-            )}
-            <View style={styles.profileInfo}>
-              <Text style={styles.name}>{user.displayName}</Text>
-              <Text style={styles.email}>{user.email}</Text>
             </View>
-          </View>
 
-          {/* Lazy List */}
-          <View style={styles.lazyListContainer}>
-            <Text style={styles.lazyListTitle}>Histórico de transações</Text>
-            <FlatList
-              data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
-              renderItem={renderListItem}
-              keyExtractor={(item, index) => index.toString()}
-            />
-          </View>
-        </>
-      )
-      }
+            {/* Lazy List */}
+            <View style={styles.lazyListContainer}>
+              <Text style={styles.lazyListTitle}>Histórico de transações</Text>
+              <FlatList
+                data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
+                renderItem={renderListItem}
+                keyExtractor={(item, index) => index.toString()}
+              />
+            </View>
+          </>
+        )
+        }
 
-      {/* Logout Button */}
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Terminar sessão</Text>
-      </TouchableOpacity>
+        {/* Logout Button */}
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Text style={styles.logoutText}>Terminar sessão</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Bottom Bar */}
       <BottomBar navigation={navigation} />
@@ -95,6 +97,9 @@ const UserProfileScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  containerInside: {
     flex: 1,
     padding: 10
   },

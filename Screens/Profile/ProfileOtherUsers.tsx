@@ -54,42 +54,50 @@ const ProfileOtherUsers: React.FC<Props> = ({ navigation, route }) => {
         <View></View>
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#8C756A" />
-      ) : (
-        <>
-          {/* Profile */}
-          {
-            user && ( // Conditionally render profile when user is not null
-              <View style={styles.profileContainer}>
-                <Image source={{ uri: 'https://via.placeholder.com/150/foto1.jpg' }} style={styles.profilePhoto} />
-                <View style={styles.profileInfo}>
-                  <Text style={styles.name}>{user.displayName}</Text>
-                  <Text style={styles.email}>{user.email}</Text>
+      <View style={styles.containerInside}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#8C756A" />
+        ) : (
+          <>
+            {/* Profile */}
+            {
+              user && ( // Conditionally render profile when user is not null
+                <View style={styles.profileContainer}>
+                  {user.profilePhoto ? (
+                    <Image source={{ uri: user.profilePhoto }} style={styles.profilePhoto} />
+                  ) : (
+                    <View style={styles.profilePhoto}>
+                      <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+                    </View>
+                  )}
+                  <View style={styles.profileInfo}>
+                    <Text style={styles.name}>{user.displayName}</Text>
+                    <Text style={styles.email}>{user.email}</Text>
+                  </View>
                 </View>
-              </View>
-            )
-          }
+              )
+            }
 
-          {/* Lazy List */}
-          <View style={styles.lazyListContainer}>
-            <Text style={styles.lazyListTitle}>Histórico de transações</Text>
-            <FlatList
-              data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
-              renderItem={renderListItem}
-              keyExtractor={(item, index) => index.toString()}
-            />
-          </View>
-
-          {/* Logout Button */}
-          <TouchableOpacity style={styles.messageButton} onPress={handleMessageButton}>
-            <Text style={styles.messageText}>Enviar mensagem</Text>
-            <View style={{ paddingLeft: 30 }}>
-              <Ionicons name='chatbox-ellipses-outline' color='white' size={25} />
+            {/* Lazy List */}
+            <View style={styles.lazyListContainer}>
+              <Text style={styles.lazyListTitle}>Histórico de transações</Text>
+              <FlatList
+                data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
+                renderItem={renderListItem}
+                keyExtractor={(item, index) => index.toString()}
+              />
             </View>
-          </TouchableOpacity>
-        </>
-      )}
+
+            {/* Logout Button */}
+            <TouchableOpacity style={styles.messageButton} onPress={handleMessageButton}>
+              <Text style={styles.messageText}>Enviar mensagem</Text>
+              <View style={{ paddingLeft: 30 }}>
+                <Ionicons name='chatbox-ellipses-outline' color='white' size={25} />
+              </View>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
 
       {/* Bottom Bar */}
       <BottomBar navigation={navigation} />
@@ -99,6 +107,10 @@ const ProfileOtherUsers: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    //padding: 10
+  },
+  containerInside: {
     flex: 1,
     padding: 10
   },
