@@ -34,7 +34,7 @@ export default {
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": 'com.discuss2166.Booksquare',
     },
     "android": {
       "adaptiveIcon": {

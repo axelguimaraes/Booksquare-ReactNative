@@ -29,17 +29,21 @@ const UserProfileScreen = ({ navigation }) => {
     <Text style={styles.listItem}>{item}</Text>
   );
 
+  const editProfileButton = () => {
+    navigation.navigate('EditProfileScreen')
+  }
+
   return (
     <View style={styles.container}>
       {/* TopBar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} />
+          <Ionicons name="arrow-back" size={30} color='grey'/>
         </TouchableOpacity>
         <Text style={styles.title}>Perfil</Text>
         {user && !user.isAnonymous ? (
-          <TouchableOpacity onPress={() => console.log('Edit Profile')}>
-            <Ionicons name="pencil" size={24} />
+          <TouchableOpacity onPress={() => editProfileButton()}>
+            <Ionicons name="pencil" size={30} color='grey' />
           </TouchableOpacity>
         ) : (
           <View></View>
