@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import BookDetailsDialog from './BookDetailsDialog'; // Import the BookDetailsDialog component
 import { Book, TransactionType } from '../Models/Book';
 
@@ -28,7 +28,11 @@ const BookCard: React.FC<Props> = ({ book, onActionButton }) => {
     <>
       <TouchableOpacity onPress={handleOpenDialog}>
         <View style={styles.container}>
-          <Image source={{ uri: book.photos[0] }} style={styles.image} />
+          {book.photos[0] ? (
+            <Image source={{ uri: book.photos[0] }} style={styles.image} />
+          ):(
+            <ActivityIndicator size={50} color='grey' />
+          )}
           <View style={styles.content}>
             <Text style={styles.title}>{book.title}</Text>
             <Text style={styles.authorYear}>{book.author}, {book.year}</Text>

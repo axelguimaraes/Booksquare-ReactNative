@@ -16,7 +16,7 @@ const UserProfileScreen = ({ navigation }) => {
     if (!isAnonymous) {
       getUserById(user?.uid).then((res: User) => setCurrentUser(res)).catch(console.error);
     }
-  }, [user])
+  }, [user, currentUser])
 
   const handleLogout = () => {
     FIREBASE_AUTH.signOut()
@@ -61,8 +61,8 @@ const UserProfileScreen = ({ navigation }) => {
           <>
             {/* Profile */}
             <View style={styles.profileContainer}>
-              {(currentUser && currentUser.profilePhoto) ? (
-                <Image source={{ uri: currentUser.profilePhoto }} style={styles.profilePhoto} />
+              {(user && user.photoURL) ? (
+                <Image source={{ uri: user.photoURL }} style={styles.profilePhoto} />
               ) : (
                 <View style={styles.profilePhoto}>
                   <Ionicons name="person-circle-outline" size={100} color="#ccc" />
