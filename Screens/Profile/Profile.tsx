@@ -121,14 +121,16 @@ const UserProfileScreen = ({ navigation }) => {
             {/* Lazy List */}
             <View style={styles.lazyListContainer}>
               <Text style={styles.lazyListTitle}>Histórico de transações</Text>
-              {transactions ? (
+              {transactions.length !== 0 ? (
                 <FlatList
                   data={transactions}
                   renderItem={renderListItem}
                   keyExtractor={(item, index) => index.toString()}
                 />
               ) : (
-                <Text>No transactions</Text>
+                <View style={styles.containerEmpty}>
+                  <Text style={styles.containerEmptyMessage}>Sem transações a apresentar.</Text>
+                </View>
               )}
             </View>
           </>
@@ -234,6 +236,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  containerEmpty: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  containerEmptyMessage: {
+    textAlign: 'center',
+    color: 'grey',
+    fontSize: 18
   },
 });
 
