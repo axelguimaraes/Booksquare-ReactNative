@@ -1,49 +1,82 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet } from 'react-native';
-import BottomBar from '../../Components/BottomBar';
-import { Ionicons } from '@expo/vector-icons';
-import { FIREBASE_AUTH } from '../../config/firebase';
-import { User } from '../../Models/User';
-import { getUserById } from '../../Services/UsersService';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  StyleSheet,
+} from "react-native";
+import BottomBar from "../../Components/BottomBar";
+import { Ionicons } from "@expo/vector-icons";
+import { FIREBASE_AUTH } from "../../config/firebase";
+import { User } from "../../Models/User";
+import { getUserById } from "../../Services/UsersService";
+import { Transaction } from "../../Models/Transaction";
+import { getAllUserTransactions } from "../../Services/TransactionsService";
+import TransactionCard from "../../Components/TransactionCard";
 
 const UserProfileScreen = ({ navigation }) => {
-  const [currentUser, setCurrentUser] = useState<User>(null)
+  const [currentUser, setCurrentUser] = useState<User>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const user = FIREBASE_AUTH.currentUser
+  const user = FIREBASE_AUTH.currentUser;
   const isAnonymous = FIREBASE_AUTH.currentUser.isAnonymous ? true : false;
 
   useEffect(() => {
     if (!isAnonymous) {
-      getUserById(user?.uid).then((res: User) => setCurrentUser(res)).catch(console.error);
+      setLoading(true);
+      getUserById(user?.uid)
+        .then((res: User) => setCurrentUser(res))
+        .catch(console.error);
+
+      const fetchTransactions = async () => {
+        try {
+          const fetchedTransactions: Transaction[] =
+            await getAllUserTransactions(user.uid);
+          setTransactions(fetchedTransactions);
+        } catch (error) {
+          console.error("Error fetching transactions:", error);
+        }
+      };
+      fetchTransactions();
+      setLoading(false);
     }
-  }, [user, currentUser])
+  }, [user, currentUser]);
 
   const handleLogout = () => {
-    FIREBASE_AUTH.signOut()
-      .then(() => {
-        alert('A sua sessão foi terminada')
-      })
-  }
+    FIREBASE_AUTH.signOut().then(() => {
+      alert("A sua sessão foi terminada");
+    });
+  };
 
   const renderListItem = ({ item }) => (
-    <Text style={styles.listItem}>{item}</Text>
+    <TransactionCard
+      id={item.id}
+      timestamp={item.timestamp}
+      book={item.book}
+      idSender={item.idSender}
+      idReceiver={item.idReceiver}
+      transactionType={item.transactionType}
+    />
   );
 
   const editProfileButton = () => {
-    navigation.navigate('EditProfileScreen')
-  }
+    navigation.navigate("EditProfileScreen");
+  };
 
   return (
     <View style={styles.container}>
       {/* TopBar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color='grey'/>
+          <Ionicons name="arrow-back" size={30} color="grey" />
         </TouchableOpacity>
         <Text style={styles.title}>Perfil</Text>
         {user && !user.isAnonymous ? (
           <TouchableOpacity onPress={() => editProfileButton()}>
-            <Ionicons name="pencil" size={30} color='grey' />
+            <Ionicons name="pencil" size={30} color="grey" />
           </TouchableOpacity>
         ) : (
           <View></View>
@@ -54,18 +87,28 @@ const UserProfileScreen = ({ navigation }) => {
         {isAnonymous ? (
           <View style={styles.anonymousContainer}>
             <Text style={styles.anonymousText}>Utilizador convidado</Text>
-            <Text style={{ fontSize: 20, textAlign: 'center', color: 'grey' }}>Inicie sessão com uma conta para benificiar de todas as funcionalidades</Text>
+            <Text style={{ fontSize: 20, textAlign: "center", color: "grey" }}>
+              Inicie sessão com uma conta para benificiar de todas as
+              funcionalidades
+            </Text>
             {/* Add any additional content for anonymous user */}
           </View>
         ) : (
           <>
             {/* Profile */}
             <View style={styles.profileContainer}>
-              {(user && user.photoURL) ? (
-                <Image source={{ uri: user.photoURL }} style={styles.profilePhoto} />
+              {user && user.photoURL ? (
+                <Image
+                  source={{ uri: user.photoURL }}
+                  style={styles.profilePhoto}
+                />
               ) : (
                 <View style={styles.profilePhoto}>
-                  <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+                  <Ionicons
+                    name="person-circle-outline"
+                    size={100}
+                    color="#ccc"
+                  />
                 </View>
               )}
               <View style={styles.profileInfo}>
@@ -77,15 +120,18 @@ const UserProfileScreen = ({ navigation }) => {
             {/* Lazy List */}
             <View style={styles.lazyListContainer}>
               <Text style={styles.lazyListTitle}>Histórico de transações</Text>
-              <FlatList
-                data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
-                renderItem={renderListItem}
-                keyExtractor={(item, index) => index.toString()}
-              />
+              {transactions ? (
+                <FlatList
+                  data={transactions}
+                  renderItem={renderListItem}
+                  keyExtractor={(item, index) => index.toString()}
+                />
+              ) : (
+                <Text>No transactions</Text>
+              )}
             </View>
           </>
-        )
-        }
+        )}
 
         {/* Logout Button */}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
@@ -95,7 +141,7 @@ const UserProfileScreen = ({ navigation }) => {
 
       {/* Bottom Bar */}
       <BottomBar navigation={navigation} />
-    </View >
+    </View>
   );
 };
 
@@ -105,12 +151,12 @@ const styles = StyleSheet.create({
   },
   containerInside: {
     flex: 1,
-    padding: 10
+    padding: 10,
   },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 10,
   },
   backButton: {
@@ -118,18 +164,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   editButton: {
     fontSize: 16,
-    color: 'blue',
+    color: "blue",
   },
   profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   profilePhoto: {
     width: 100,
@@ -142,22 +188,22 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   email: {
     fontSize: 16,
-    color: 'gray',
+    color: "gray",
   },
   lazyListContainer: {
     padding: 10,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     marginTop: 10,
     flex: 1,
   },
   lazyListTitle: {
-    color: 'black',
-    fontWeight: 'bold',
+    color: "black",
+    fontWeight: "bold",
     fontSize: 16,
     marginBottom: 10,
   },
@@ -166,27 +212,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   logoutButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#8C756A',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#8C756A",
     padding: 15,
     borderRadius: 10,
-    marginTop: 15
+    marginTop: 15,
   },
   logoutText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     fontSize: 16,
   },
   anonymousContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   anonymousText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

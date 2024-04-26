@@ -12,6 +12,11 @@ import uploadMedia from '../../Utils/uploadMedia';
 import { CameraView, useCameraPermissions } from 'expo-camera/next';
 import { CameraType } from 'expo-camera/build/Camera.types';
 import BarcodeScanner from '../../Utils/useBarcodeScanner';
+import { Transaction } from '../../Models/Transaction';
+import { getUserIdByDisplayName } from '../../Services/UsersService';
+import { createTransaction } from '../../Services/TransactionsService';
+import uuid from 'react-native-uuid'
+
 
 const TradeForm = ({ route }) => {
     const [loading, setLoading] = useState(false);
@@ -64,11 +69,20 @@ const TradeForm = ({ route }) => {
                 userId: FIREBASE_AUTH.currentUser.uid,
                 isbn: bookToTradeISBN,
                 tradedByPhotos: downloadURLs
-            });
-
+            }).then(async () => {
+                const transaction: Transaction = {
+                    id: uuid.v4().toString(),
+                    timestamp: Date.now(),
+                    book: book,
+                    idSender: await getUserIdByDisplayName(book.currentOwner),
+                    idReceiver: FIREBASE_AUTH.currentUser.uid,
+                    transactionType: book.transactionType
+                }
+                await createTransaction(transaction).catch((error) => console.error('Error creating transaction',error))
+                alert('Livro trocado com sucesso!');
+                navigation.goBack()
+            })
             setLoading(false);
-            alert('Livro trocado com sucesso!');
-            navigation.goBack();
         } catch (error) {
             console.error('Error uploading images:', error);
             alert('Erro ao carregar as imagens: ' + error.message);
