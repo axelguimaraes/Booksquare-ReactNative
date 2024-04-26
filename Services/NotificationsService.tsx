@@ -2,6 +2,7 @@ import { Notification } from '../Models/Notification';
 import DummyNotifications from '../DummyData/Notifications';
 
 export const getAllNotifications = (): Promise<Notification[]> => {
+  console.warn('Getting all notifications')
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(DummyNotifications);
@@ -10,6 +11,7 @@ export const getAllNotifications = (): Promise<Notification[]> => {
 };
 
 export const markNotificationAsRead = (id: number): Promise<void> => {
+  console.warn('Marking notification as read')
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       const notificationIndex = DummyNotifications.findIndex(notification => notification.id === id);
@@ -24,6 +26,7 @@ export const markNotificationAsRead = (id: number): Promise<void> => {
 };
 
 export const deleteAllNotifications = (): Promise<void> => {
+  console.warn('Deleting all notifications')
   return new Promise((resolve) => {
     setTimeout(() => {
       DummyNotifications.splice(0, DummyNotifications.length);

@@ -4,6 +4,7 @@ import { collection,addDoc, getDocs, Query, query, where, CollectionReference, D
 
 // Function to fetch all books from the database
 export const getAllBooks = async (transactionType?: TransactionType): Promise<Book[]> => {
+  console.warn('Getting all books')
   try {
     const booksCollection = collection(FIREBASE_DB, 'books');
     let booksQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
@@ -30,6 +31,7 @@ export const getAllBooks = async (transactionType?: TransactionType): Promise<Bo
 };
 
 export const subscribeToBooks = (transactionType, onUpdate) => {
+  console.warn('Subscribing to books')
   const booksRef = collection(FIREBASE_DB, 'books');
 
   // Create a query to filter books by transaction type
@@ -60,6 +62,7 @@ export const subscribeToBooks = (transactionType, onUpdate) => {
 
 
 export const getBookInfoByISBN = async (isbn) => {
+  console.warn('Getting book info by ISBN')
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
     const data = await response.json();
@@ -71,6 +74,7 @@ export const getBookInfoByISBN = async (isbn) => {
 }
 
 export const populateBookFromJson = (json: any): Book => {
+  console.warn('populating book from JSON')
   const genres: string[] = json.volumeInfo.categories || [];
 
   const photos: string[] = json.volumeInfo.imageLinks
@@ -93,7 +97,7 @@ export const populateBookFromJson = (json: any): Book => {
 };
 
 export const addBook = async (book: Book) => {
-
+  console.warn('Adding book')
   const booksQuery = query(collection(FIREBASE_DB, 'books'),
     where('isbn', '==', book.isbn),
     where('currentOwner', '==', book.currentOwner)
@@ -109,6 +113,7 @@ export const addBook = async (book: Book) => {
 }
 
 export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
+  console.warn('Renting book')
   try {
     const bookRef = doc(FIREBASE_DB, 'books', bookId);
 
@@ -146,6 +151,7 @@ export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
 };
 
 export const tradeBook = async ({ bookId, userId, isbn, tradedByPhotos }: { bookId: string, userId: string, isbn: number, tradedByPhotos: string[] }): Promise<void> => {
+  console.warn('Trading book')
   try {
     const bookRef = doc(FIREBASE_DB, 'books', bookId);
     const bookSnapshot = await getDoc(bookRef);

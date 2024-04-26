@@ -5,6 +5,7 @@ import { Book } from '../Models/Book';
 import uuid from 'react-native-uuid';
 
 export const addToCart = async (userId: string, book: Book): Promise<void> => {
+    console.warn('Adding to cart')
     try {
         const item: ShoppingCartItem = {
             productId: uuid.v4().toString(), 
@@ -35,6 +36,7 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
 };
 
 export const removeFromCart = async (userId: string, productId: string): Promise<void> => {
+    console.warn('Removing from cart')
     try {
         const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
@@ -53,6 +55,7 @@ export const removeFromCart = async (userId: string, productId: string): Promise
 };
 
 export const clearCart = async (userId: string): Promise<void> => {
+    console.warn('Clearing cart')
     try {
         const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
@@ -69,6 +72,7 @@ export const clearCart = async (userId: string): Promise<void> => {
 };
 
 export const getCartItems = async (userId: string): Promise<ShoppingCartItem[]> => {
+    console.warn('Getting cart items')
     try {
         const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
@@ -87,6 +91,7 @@ export const getCartItems = async (userId: string): Promise<ShoppingCartItem[]> 
 };
 
 export const getCartItemCount = async (userId: string): Promise<number> => {
+    console.warn('Getting cart item count')
     try {
         const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
@@ -106,6 +111,7 @@ export const getCartItemCount = async (userId: string): Promise<number> => {
 };
 
 export const listenForCartChanges = (updateCallback) => {
+    console.warn('Listening for cart changes')
     const currentUser = FIREBASE_AUTH.currentUser
     const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
     const cartQuery = query(cartCollection, where('userId', '==', currentUser.uid));

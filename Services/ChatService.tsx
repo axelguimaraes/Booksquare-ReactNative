@@ -7,6 +7,7 @@ import { Chat, SingleMessage } from "../Models/Chat";
 import { User } from "../Models/User";
 
 export const getChat = async (userId: string, otherUserId: string): Promise<Chat | null> => {
+  console.warn('Getting chat')
   try {
     const chatsRef = collection(FIREBASE_DB, 'chats');
 
@@ -32,6 +33,7 @@ export const getChat = async (userId: string, otherUserId: string): Promise<Chat
 };
 
 export const getAllUserChats = async (userId: string): Promise<Chat[]> => {
+  console.warn('Getting all user chats')
   try {
     // Fetch the user document
     const userQuery = query(collection(FIREBASE_DB, 'users'), where('userId', '==', userId));
@@ -66,6 +68,7 @@ export const getAllUserChats = async (userId: string): Promise<Chat[]> => {
 
 
 export const subscribeToChat = (userId: string, otherUserId: string, onUpdate: (chat: Chat | null) => void) => {
+  console.warn('Subscribing to chat')
   const chatsRef = collection(FIREBASE_DB, 'chats');
 
   // Create a query to find the chat document for the given user pair
@@ -106,6 +109,7 @@ export const subscribeToChat = (userId: string, otherUserId: string, onUpdate: (
 };
 
 export const sendSingleMessage = async (chat: Chat, newMessage: SingleMessage): Promise<void> => {
+  console.warn('Sending single message')
   try {
     // Find the chat document by object ID
     const chatsRef = collection(FIREBASE_DB, 'chats');
@@ -132,6 +136,7 @@ export const sendSingleMessage = async (chat: Chat, newMessage: SingleMessage): 
 };
 
 export const markAllMessagesAsRead = async (chatId: string, userId: string): Promise<void> => {
+  console.warn('marking all messages a read')
   try {
     // Query for the chat documents where the chat ID matches
     const chatQuery = query(collection(FIREBASE_DB, 'chats'), where('id', '==', chatId));

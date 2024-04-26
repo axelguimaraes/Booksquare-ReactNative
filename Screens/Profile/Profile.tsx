@@ -25,9 +25,9 @@ const UserProfileScreen = ({ navigation }) => {
   const isAnonymous = FIREBASE_AUTH.currentUser.isAnonymous ? true : false;
 
   useEffect(() => {
-    if (!isAnonymous) {
+    if (!isAnonymous && user) {
       setLoading(true);
-      getUserById(user?.uid)
+      getUserById(user.uid)
         .then((res: User) => setCurrentUser(res))
         .catch(console.error);
 
@@ -36,14 +36,15 @@ const UserProfileScreen = ({ navigation }) => {
           const fetchedTransactions: Transaction[] =
             await getAllUserTransactions(user.uid);
           setTransactions(fetchedTransactions);
+          setLoading(false); // Move setLoading here to ensure it's called after transactions are fetched
         } catch (error) {
           console.error("Error fetching transactions:", error);
+          setLoading(false); // Make sure to set loading to false even in case of error
         }
       };
       fetchTransactions();
-      setLoading(false);
     }
-  }, [user, currentUser]);
+  }, [user]); // Only depend on 'user' to prevent infinite loops
 
   const handleLogout = () => {
     FIREBASE_AUTH.signOut().then(() => {

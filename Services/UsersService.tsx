@@ -3,6 +3,7 @@ import { User } from "../Models/User";
 import { FIREBASE_DB } from "../config/firebase";
 
 export const addUser = async (userData: User): Promise<void> => {
+  console.warn('Adding user')
   try {
     const docRef = await addDoc(collection(FIREBASE_DB, 'users'), userData)
     console.log('User added with ID: ', docRef.id);
@@ -13,6 +14,7 @@ export const addUser = async (userData: User): Promise<void> => {
 };
 
 export const getUserById = async (userId: string): Promise<User | null> => {
+  console.warn('Getting user by ID')
   try {
     const usersCollection = collection(FIREBASE_DB, 'users');
     let usersQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
@@ -34,6 +36,7 @@ export const getUserById = async (userId: string): Promise<User | null> => {
 
 // Function to get a user from Firestore by display name
 export const getUserByDisplayName = async (displayName: string): Promise<User | null> => {
+  console.warn('Getting user by display name')
   try {
     const usersCollection = collection(FIREBASE_DB, 'users');
     let usersQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
@@ -54,6 +57,7 @@ export const getUserByDisplayName = async (displayName: string): Promise<User | 
 };
 
 export const getUserIdByDisplayName = async (displayName: string): Promise<string | null> => {
+  console.warn('Getting user ID by display name')
   try {
     const usersRef = collection(FIREBASE_DB, 'users');
     const q = query(usersRef, where('displayName', '==', displayName));
@@ -72,6 +76,7 @@ export const getUserIdByDisplayName = async (displayName: string): Promise<strin
 };
 
 export const updateUser = async (userId: string, userData: Partial<User>): Promise<void> => {
+  console.warn('Updating user')
   try {
     await updateDoc(doc(FIREBASE_DB, 'users', userId), userData);
     console.log('User updated successfully');
@@ -82,6 +87,7 @@ export const updateUser = async (userId: string, userData: Partial<User>): Promi
 };
 
 export const updateUserById = async (userId: string, userData: Partial<User>): Promise<void> => {
+  console.warn('Updating user by ID')
   try {
     // Construct a query to find the user document based on userId
     const usersRef = collection(FIREBASE_DB, 'users');
@@ -109,6 +115,7 @@ export const updateUserById = async (userId: string, userData: Partial<User>): P
 
 // Function to delete a user from Firestore
 export const deleteUser = async (userId: string): Promise<void> => {
+  console.warn('Deleting user')
   try {
     await deleteDoc(doc(FIREBASE_DB, 'users', userId));
     console.log('User deleted successfully');
