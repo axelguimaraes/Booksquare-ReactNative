@@ -16,6 +16,7 @@ import { FIREBASE_AUTH } from '../config/firebase';
 import ProfileOtherUsers from '../Screens/Profile/ProfileOtherUsers';
 import { User } from '../Models/User';
 import { Book } from '../Models/Book';
+import EditProfileScreen from '../Screens/Profile/EditProfileScreen';
 
 export type StackNavigationParamsList = {
   Home: undefined
@@ -23,6 +24,7 @@ export type StackNavigationParamsList = {
   Search: undefined
   Messages: undefined
   Profile: { userId: string }
+  EditProfileScreen: undefined
   ProfileOtherUsers: { userId: string }
   Sell: undefined
   ShoppingCartScreen: undefined
@@ -44,6 +46,7 @@ export default function UserStack() {
         <Stack.Screen name="Messages" component={Messages} options={{ headerShown: false }} />
         <Stack.Screen name="Profile" component={UserProfileScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ProfileOtherUsers" component={ProfileOtherUsers} options={{ headerShown: false }} />
+        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} options={{ headerShown: false}} />
         <Stack.Screen name="Sell" component={AddBook} options={{ headerShown: false }} />
         <Stack.Screen name="ShoppingCartScreen" component={ShoppingCartScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: false }} />
