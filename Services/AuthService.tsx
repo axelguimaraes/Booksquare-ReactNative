@@ -7,7 +7,7 @@ const auth = FIREBASE_AUTH
 const provider = new GoogleAuthProvider()
 
 export const loginWithEmailAndPassword = async (email, password) => {
-    console.warn('Logging with email and password')
+    console.log('Logging with email and password')
     try {
         const response = await signInWithEmailAndPassword(auth, email, password)
         return response
@@ -18,7 +18,7 @@ export const loginWithEmailAndPassword = async (email, password) => {
 }
 
 export const loginWithGoogle = async () => {
-    console.warn('Logging with google')
+    console.log('Logging with google')
     try {
         // TODO: Login with google
         alert('Funcionalidade de momento não suportada.')
@@ -29,7 +29,7 @@ export const loginWithGoogle = async () => {
 }
 
 export const loginAnonymously = async () => {
-    console.warn('Logging anonymously')
+    console.log('Logging anonymously')
     try {
         const response = await signInAnonymously(auth)
         return response
@@ -40,7 +40,7 @@ export const loginAnonymously = async () => {
 }
 
 export const registerWithEmailAndPassword = async (email, password, displayName) => {
-    console.warn('Registering with email and password')
+    console.log('Registering with email and password')
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
         const user = userCredential.user

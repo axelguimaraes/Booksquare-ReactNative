@@ -8,7 +8,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { getUserByDisplayName, getUserById, getUserIdByDisplayName } from '../Services/UsersService';
 import { FIREBASE_AUTH } from '../config/firebase';
 import Swiper from 'react-native-swiper'
-import { User } from '../Models/User';
 
 interface Props {
   book: Book;

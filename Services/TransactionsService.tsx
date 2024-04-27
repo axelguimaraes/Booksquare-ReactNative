@@ -18,7 +18,7 @@ import {
 } from "firebase/firestore";
 
 export const createTransaction = async (transactionData: Transaction) => {
-  console.warn('Creating transaction')
+  console.log('Creating transaction')
   const transactionsQuery = query(
     collection(FIREBASE_DB, "transactions"),
     where("id", "==", transactionData.id)
@@ -35,7 +35,7 @@ export const createTransaction = async (transactionData: Transaction) => {
 
 // Function to get all transactions by user ID
 export const getAllUserTransactions = async (userId: string): Promise<Transaction[]> => {
-  console.warn('Getting all user transactions')
+  console.log('Getting all user transactions')
   try {
     const transactionsCollection = collection(FIREBASE_DB, 'transactions')
     

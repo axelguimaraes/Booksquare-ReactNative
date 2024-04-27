@@ -2,16 +2,16 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ShoppingCart from "../../Components/ShoppingCartItems";
-import { useNavigation } from "@react-navigation/native";
 import {
   getCartItems,
   removeFromCart,
   clearCart,
 } from "../../Services/ShoppingCartService";
 import { FIREBASE_AUTH } from "../../config/firebase";
+import { ShoppingCartItem } from "../../Models/ShoppingCart";
 
 const ShoppingCartScreen = ({ navigation }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState([] as ShoppingCartItem[]);
   const currentUser = FIREBASE_AUTH.currentUser;
 
   useEffect(() => {
@@ -19,12 +19,9 @@ const ShoppingCartScreen = ({ navigation }) => {
   }, []);
 
   const loadCartItems = async () => {
-    try {
-      const items = await getCartItems(currentUser.uid);
-      setCartItems(items);
-    } catch (error) {
-      console.error("Error loading cart items:", error);
-    }
+    getCartItems(currentUser.uid)
+    .then((items: ShoppingCartItem[]) => setCartItems(items))
+    .catch((error) => console.error(error))
   };
 
   const handleRemoveItem = async (productId: string) => {
@@ -39,7 +36,7 @@ const ShoppingCartScreen = ({ navigation }) => {
   const handleEmptyCart = async () => {
     try {
       await clearCart(currentUser.uid);
-      setCartItems([]); // Clear cart items state
+      setCartItems([]);
     } catch (error) {
       console.error("Error clearing cart:", error);
     }

@@ -10,7 +10,7 @@ import { FIREBASE_AUTH } from '../../config/firebase';
 import { createTransaction } from '../../Services/TransactionsService';
 import { Transaction } from '../../Models/Transaction';
 import uuid from 'react-native-uuid'
-import { getUserByDisplayName, getUserIdByDisplayName } from '../../Services/UsersService';
+import { getUserIdByDisplayName } from '../../Services/UsersService';
 
 const RentForm = ({ route }) => {
     const [loading, setLoading] = useState(false);
@@ -81,7 +81,7 @@ const RentForm = ({ route }) => {
                         <Text style={styles.valueBoxContent}>{book.genre.join(', ')}</Text>
                     </View>
 
-                    <Text style={styles.title}>Alugar até:</Text>
+                    <Text style={styles.title}>Alugar até: <Text style={{fontStyle: 'italic', color: 'grey'}}>(Clique para selecionar)</Text></Text>
                     <TouchableOpacity onPress={toggleDatePicker}>
                         <View style={styles.valueBox}>
                             <Text style={styles.valueBoxContent}>{selectedDate ? selectedDate.toLocaleDateString() : 'Selecione uma data'}</Text>
@@ -91,7 +91,7 @@ const RentForm = ({ route }) => {
                     {showDatePicker && (
                         <DatePicker
                             value={selectedDate}
-                            onChange={(event, date) => {
+                            onChange={(_event, date) => {
                                 setSelectedDate(date);
                                 toggleDatePicker(); // Close date picker after selecting a date
                             }}

@@ -18,6 +18,7 @@ import { User } from '../Models/User';
 import { Book } from '../Models/Book';
 import CheckoutScreen from '../Screens/Shopping/CheckoutScreen';
 import EditProfileScreen from '../Screens/Profile/EditProfileScreen';
+import { ShoppingCartItem } from '../Models/ShoppingCart';
 
 export type StackNavigationParamsList = {
   Home: undefined
@@ -32,7 +33,7 @@ export type StackNavigationParamsList = {
   ChatScreen: { currentUser: string, otherUser: string, book: Book}
   RentForm: undefined
   TradeForm: undefined
-  CheckoutScreen: any[]
+  CheckoutScreen: ShoppingCartItem[]
 }
 
 const Stack = createStackNavigator<StackNavigationParamsList>();
