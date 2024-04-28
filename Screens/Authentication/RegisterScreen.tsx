@@ -10,11 +10,16 @@ const RegisterScreen = ({ navigation }) => {
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleEmailChange = (text) => setEmail(text);
     const handleUsernameChange = (text) => setUsername(text)
     const handlePasswordChange = (text) => setPassword(text);
     const handlePasswordConfirmChange = (text) => setPasswordConfirm(text);
+
+    const togglePasswordVisibility = () => {
+        setShowPassword((prev) => !prev);
+    };
 
     const isValid = () => {
         if (!username || !email || !password || !passwordConfirm) {
@@ -73,7 +78,7 @@ const RegisterScreen = ({ navigation }) => {
                         value={password}
                         onChangeText={handlePasswordChange}
                         placeholder="Palavra-passe"
-                        secureTextEntry={true}
+                        secureTextEntry={showPassword ? false : true}
                         autoCapitalize='none'
                     />
                     <TextInput
@@ -81,9 +86,15 @@ const RegisterScreen = ({ navigation }) => {
                         value={passwordConfirm}
                         onChangeText={handlePasswordConfirmChange}
                         placeholder="Confirmar palavra-passe"
-                        secureTextEntry={true}
+                        secureTextEntry={showPassword ? false : true}
                         autoCapitalize='none'
                     />
+                    <TouchableOpacity onPress={togglePasswordVisibility}>
+                        <View style={{ flexDirection: "row", justifyContent: "center" }}>
+                            <Text style={{ color: 'white', marginRight: 20, marginBottom: 20 }}>Mostar palavra-passe</Text>
+                            <Ionicons name={!showPassword ? "eye-off" : "eye"} size={24} color="white" />
+                        </View>
+                    </TouchableOpacity>
                     {loading ? <ActivityIndicator size="large" color="white" />
                         :
                         <>

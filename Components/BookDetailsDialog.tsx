@@ -20,8 +20,6 @@ interface Props {
 const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionButton, hasTransactionType }) => {
   const navigation = useNavigation<StackNavigationProp<StackNavigationParamsList>>()
   const [userId, setUserId] = useState<string | null>(null)
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
   const [sizeMode, setSizeMode] = useState<ImageResizeMode>("contain");
   const [loading, setLoading] = useState(false);
 
@@ -32,17 +30,6 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
     }
     fetchUserId()
   }, [book.currentOwner])
-
-  const handleScroll = (event: any) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
-    setCurrentIndex(index);
-  };
-
-  const scrollToIndex = (index: number) => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToIndex({ index, animated: true });
-    }
-  };
 
   const handleOwnerClick = () => {
     onClose()
@@ -63,9 +50,12 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
   };
 
   const onContactButton = async () => {
+    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+      alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
+      return
+    }
     setLoading(true);
     try {
-        //const currentUser = await getUserById(FIREBASE_AUTH.currentUser.uid);
         const owner = await getUserByDisplayName(book.currentOwner);
 
         if (owner) {

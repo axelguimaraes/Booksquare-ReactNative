@@ -5,7 +5,7 @@ import { Book } from '../Models/Book';
 import uuid from 'react-native-uuid';
 
 export const addToCart = async (userId: string, book: Book): Promise<void> => {
-    console.log('Adding to cart')
+    console.log('Adding to cart');
     try {
         const item: ShoppingCartItem = {
             productId: uuid.v4().toString(), 
@@ -18,6 +18,17 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
         const cartQuery = query(cartCollection, where('userId', '==', userId));
         const querySnapshot = await getDocs(cartQuery);
 
+        if (!querySnapshot.empty) {
+            // If the shopping cart already exists, check if the book with the same ISBN exists
+            const cartData = querySnapshot.docs[0].data();
+            const items = cartData.items;
+            const existingBook = items.find((item: ShoppingCartItem) => item.isbn === book.isbn);
+            if (existingBook) {
+                alert('Este livro já se encontra no carrinho de compras!');
+                return; // Exit the function if the book already exists in the cart
+            }
+        }
+
         if (querySnapshot.empty) {
             // If the shopping cart doesn't exist for the user, create a new one
             const cartRef = await addDoc(cartCollection, { userId, items: [item] });
@@ -29,12 +40,13 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
             const updatedItems = [...cartData.items, item];
             await updateDoc(cartDocRef, { items: updatedItems });
         }
-        alert('Item adicionado ao carrinho!')
+        alert('Item adicionado ao carrinho!');
     } catch (error) {
         console.error('Error adding item to shopping cart:', error);
         throw error;
     }
 };
+
 
 export const removeFromCart = async (userId: string, productId: string): Promise<void> => {
     console.log('Removing from cart')

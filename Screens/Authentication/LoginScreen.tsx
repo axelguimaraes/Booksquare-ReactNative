@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  ImageSourcePropType,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +19,11 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const passwordInputRef = useRef(null)
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const handleEmailChange = (text) => setEmail(text);
   const handlePasswordChange = (text) => setPassword(text);
@@ -72,10 +76,17 @@ const LoginScreen = ({ navigation }) => {
             value={password}
             onChangeText={handlePasswordChange}
             placeholder="Palavra-passe"
-            secureTextEntry={true}
+            secureTextEntry={showPassword ? false : true}
             autoCapitalize="none"
             onSubmitEditing={handleEmailLogin}
           />
+          <TouchableOpacity onPress={togglePasswordVisibility}>
+            <View style={{ flexDirection: "row", justifyContent: "center" }}>
+              <Text style={{ color: 'white', marginRight: 20, marginBottom: 20 }}>Mostar palavra-passe</Text>
+              <Ionicons name={!showPassword ? "eye-off" : "eye"} size={24} color="white"  />
+            </View>
+          </TouchableOpacity>
+
           {loading ? (
             <ActivityIndicator size="large" color="white" />
           ) : (
@@ -108,7 +119,7 @@ const LoginScreen = ({ navigation }) => {
           )}
         </View>
       </View>
-    </View>
+    </View >
   );
 };
 

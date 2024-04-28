@@ -94,8 +94,8 @@ export const populateBookFromJson = (json: any): Book => {
   console.log('populating book from JSON')
   const genres: string[] = json.volumeInfo.categories || [];
 
-  const photos: string[] = json.volumeInfo.imageLinks
-    ? [json.volumeInfo.imageLinks.thumbnail]
+  const photos: string[] = json.volumeInfo.imageLinks && json.volumeInfo.imageLinks.thumbnail
+    ? [json.volumeInfo.imageLinks.thumbnail.replace('http://', 'https://')] 
     : [];
 
   return {

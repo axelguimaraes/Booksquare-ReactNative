@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import NotificationsComponent from './NotificationsComponent';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 
 const Notifications = ({ navigation }) => {
+
+    useEffect(() => {
+        alert('Funcionalidade não implementada!\n Os dados apresentados neste ecrã são fictícios.')
+    })
+
     return (
         <View style={styles.container}>
             <TopBar navigation={navigation} />

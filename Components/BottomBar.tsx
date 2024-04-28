@@ -25,6 +25,10 @@ const BottomBar: React.FC<BottomBarProps> = ({ navigation }) => {
     navigation.navigate('Sell');
   };
   const navigateToMessagesScreen = () => {
+    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+      alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
+      return
+    }
     navigation.navigate('Messages');
   };
   const navigateToProfileScreen = () => {
