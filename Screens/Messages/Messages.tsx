@@ -1,27 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import MessagesList from './MessagesList';
 import { Chat } from '../../Models/Chat';
 import { FIREBASE_AUTH } from '../../config/firebase';
-import { getAllUserChats, getChat } from '../../Services/ChatService';
+import { getAllUserChats } from '../../Services/ChatService';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Messages = ({ navigation }) => {
   const [chats, setChats] = useState<Chat[]>([]);
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const userChats = await getAllUserChats(FIREBASE_AUTH.currentUser.uid);
-        setChats(userChats);
-      } catch (error) {
-        console.error('Error retrieving chats:', error);
-      }
-    };
+  const fetchMessages = async () => {
+    try {
+      const userChats = await getAllUserChats(FIREBASE_AUTH.currentUser.uid);
+      setChats(userChats);
+    } catch (error) {
+      console.error('Error retrieving chats:', error);
+    }
+  };
 
-    fetchMessages();
-  }, []);
+  // Use the useFocusEffect hook to run the fetchMessages function when the screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchMessages();
+    }, []) // Empty dependency array means this effect only runs once when the component mounts
+  );
 
   return (
     <View style={styles.container}>
