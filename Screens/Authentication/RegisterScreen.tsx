@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { registerWithEmailAndPassword } from '../../Services/AuthService';
@@ -11,6 +11,10 @@ const RegisterScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [showPassword, setShowPassword] = useState(false);
+
+    const usernameInputRef = useRef(null)
+    const passwordInputRef = useRef(null)
+    const confirmPasswordInputRef = useRef(null)
 
     const handleEmailChange = (text) => setEmail(text);
     const handleUsernameChange = (text) => setUsername(text)
@@ -65,23 +69,32 @@ const RegisterScreen = ({ navigation }) => {
                         onChangeText={handleEmailChange}
                         placeholder="Email"
                         autoCapitalize='none'
+                        returnKeyType="next"
+                        onSubmitEditing={() => usernameInputRef.current?.focus()}
                     />
                     <TextInput
+                        ref={usernameInputRef}
                         style={styles.input}
                         value={username}
                         onChangeText={handleUsernameChange}
                         placeholder="Nome de utilizador"
                         autoCapitalize='none'
+                        returnKeyType="next"
+                        onSubmitEditing={() => passwordInputRef.current?.focus()}
                     />
                     <TextInput
+                        ref={passwordInputRef}
                         style={styles.input}
                         value={password}
                         onChangeText={handlePasswordChange}
                         placeholder="Palavra-passe"
                         secureTextEntry={showPassword ? false : true}
                         autoCapitalize='none'
+                        returnKeyType="next"
+                        onSubmitEditing={() => confirmPasswordInputRef.current?.focus()}
                     />
                     <TextInput
+                        ref={confirmPasswordInputRef}
                         style={styles.input}
                         value={passwordConfirm}
                         onChangeText={handlePasswordConfirmChange}
