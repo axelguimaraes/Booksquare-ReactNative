@@ -6,10 +6,27 @@ import getTimestampText from '../Utils/getTimestampText';
 const ChatCard = ({ profilePhoto, username, messageSnippet, timestamp, isRead, isCurrentUser }) => {
     const timestampText = getTimestampText(timestamp);
     const containerStyle = isRead ? styles.container : [styles.container, styles.unreadContainer];
-    const messageSnippetStyle = isCurrentUser ? styles.currentUserMessage : (isRead ? styles.messageSnippet : [styles.messageSnippet, styles.bold]);
 
-    // Prepend "Tu: " to messageSnippet if the current user sent the last message
-    const modifiedMessageSnippet = isCurrentUser ? `Tu: ${messageSnippet}` : messageSnippet;
+    let messageSnippetStyle;
+    if (isCurrentUser) {
+        messageSnippetStyle = styles.currentUserMessage;
+    } else {
+        if (isRead) {
+            messageSnippetStyle = styles.messageSnippet;
+        } else {
+            messageSnippetStyle = [styles.messageSnippet, styles.bold];
+        }
+    }
+
+
+    let modifiedMessageSnippet;
+
+    if (isCurrentUser) {
+        modifiedMessageSnippet = `Tu: ${messageSnippet}`;
+    } else {
+        modifiedMessageSnippet = messageSnippet;
+    }
+
 
     return (
         <View style={containerStyle}>
@@ -32,6 +49,7 @@ const ChatCard = ({ profilePhoto, username, messageSnippet, timestamp, isRead, i
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -83,8 +101,6 @@ const styles = StyleSheet.create({
     currentUserMessage: {
         flex: 1,
         marginRight: 10,
-        fontWeight: 'bold',
-        color: 'blue', // Example color for current user's messages
     },
     timestamp: {
         color: 'gray',

@@ -3,7 +3,6 @@ import { View, StyleSheet, Text } from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import MessagesList from './MessagesList';
-import { getUserById } from '../../Services/UsersService';
 import { Chat } from '../../Models/Chat';
 import { FIREBASE_AUTH } from '../../config/firebase';
 import { getAllUserChats, getChat } from '../../Services/ChatService';
@@ -22,7 +21,7 @@ const Messages = ({ navigation }) => {
     };
 
     fetchMessages();
-  }, [chats]);
+  }, []);
 
   return (
     <View style={styles.container}>

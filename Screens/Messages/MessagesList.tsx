@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import ChatCard from '../../Components/ChatCard';
 import { getUserById } from '../../Services/UsersService';
-import { Chat } from '../../Models/Chat';
 import { User } from '../../Models/User';
 import { FIREBASE_AUTH } from '../../config/firebase';
 
@@ -63,7 +62,7 @@ const MessagesList = ({ data, navigation, currentUser }) => {
               messageSnippet={item.messageThread[item.messageThread.length - 1].content}
               timestamp={item.messageThread[item.messageThread.length - 1].timestamp}
               isRead={item.messageThread[item.messageThread.length - 1].isRead}
-              isCurrentUser={currentUser.id === otherUserId}
+              isCurrentUser={item.messageThread[item.messageThread.length - 1].senderID === FIREBASE_AUTH.currentUser.uid}
             />
           </TouchableOpacity>
         ) : null;
