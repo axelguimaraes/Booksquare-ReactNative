@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Text, ActivityIndicator, RefreshControl } from 'react-native';
 import ChatCard from '../../Components/ChatCard';
 import { getUserById } from '../../Services/UsersService';
 import { User } from '../../Models/User';
 import { FIREBASE_AUTH } from '../../config/firebase';
 
-const MessagesList = ({ data, navigation, currentUser }) => {
+const MessagesList = ({ data, navigation, currentUser, onUpdate }) => {
   const [otherUsers, setOtherUsers] = useState<{ [userId: string]: User }>({});
   const [loading, setLoading] = useState(true);
 
@@ -67,6 +67,14 @@ const MessagesList = ({ data, navigation, currentUser }) => {
           </TouchableOpacity>
         ) : null;
       }}
+      refreshControl={
+        <RefreshControl
+          refreshing={loading}
+          onRefresh={onUpdate}
+          colors={['#9Bd35A', '#689F38']}
+          progressBackgroundColor="#ffffff"
+        />
+      }
     />
   );
 };

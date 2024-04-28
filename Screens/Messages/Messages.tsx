@@ -32,7 +32,7 @@ const Messages = ({ navigation }) => {
       <TopBar navigation={navigation} />
       <View style={styles.content}>
         {chats.length !== 0 ? (
-          <MessagesList data={chats} navigation={navigation} currentUser={FIREBASE_AUTH.currentUser} />
+          <MessagesList data={chats} navigation={navigation} currentUser={FIREBASE_AUTH.currentUser} onUpdate={fetchMessages}/>
         ) : (
           <View style={styles.containerEmpty}>
             <Text style={styles.containerEmptyMessage}>Sem mensagens a apresentar.</Text>
