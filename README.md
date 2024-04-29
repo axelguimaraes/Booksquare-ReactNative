@@ -53,7 +53,6 @@ Booksquare is a mobile application built with React Native that facilitates buyi
 - **React Native:** Frontend framework for building cross-platform mobile apps.
 - **Firebase:** Backend services for user authentication, database, and storage.
 - **React Navigation:** Routing and navigation library for React Native apps.
-- **Redux:** State management library for managing application state.
 - **Expo:** Development toolchain for building and deploying React Native apps.
 
 ## License
