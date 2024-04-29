@@ -1,5 +1,6 @@
 # Booksquare - Books E-Commerce App
 
+![Booksquare](./assets/banner.png "Banner")
 Booksquare is a mobile application built with React Native that facilitates buying, selling, and trading of books. Whether you're a book lover looking to expand your collection, or you want to declutter your shelves by selling or trading books, Booksquare provides a convenient platform for book enthusiasts to connect.
 
 ## Features
