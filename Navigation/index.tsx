@@ -1,35 +1,38 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import React, { useEffect, useState } from 'react';
+import UserStack from './UserStack';
+import AuthStack from './AuthStack';
+import { FIREBASE_AUTH } from '../config/firebase';
 
-import Home from "../Components/Home";
-import BottomSheet from "../Components/BottomSheet";
-import CheckBox from "../Components/CheckBox";
-import CollapsibleCard from "../Components/CollapsibleCard";
-import ColorPicker from "../Components/ColorPicker";
-import IconPicker from "../Components/IconPicker";
-import ModalInput from "../Components/ModalInput";
-import RadioGroup from "../Components/RadioGroup";
-import Separator from "../Components/Separator";
-import Tag from "../Components/Tag";
+export default function RootNavigation() {
+ const [initializing, setInitializing] = useState(true);
+ const [user, setUser] = useState();
 
-const Stack = createStackNavigator();
+ function onAuthStateChanged(user) {
+   if (!user) {
+     // No user found, perform logout action
+     FIREBASE_AUTH.signOut()
+       .then(() => {
+         // Clear user state and stop initializing
+         setUser(null);
+         setInitializing(false);
+       })
+       .catch((error) => {
+         console.error("Error signing out:", error);
+         // You might want to handle this error scenario
+       });
+   } else {
+     // User found, set user state and stop initializing
+     setUser(user);
+     setInitializing(false);
+   }
+ }
 
-export default function AppNavigation() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="BottomSheet" component={BottomSheet} />
-        <Stack.Screen name="CheckBox" component={CheckBox} />
-        <Stack.Screen name="CollapsibleCard" component={CollapsibleCard} />
-        <Stack.Screen name="ColorPicker" component={ColorPicker} />
-        <Stack.Screen name="IconPicker" component={IconPicker} />
-        <Stack.Screen name="ModalInput" component={ModalInput} />
-        <Stack.Screen name="RadioGroup" component={RadioGroup} />
-        <Stack.Screen name="Separator" component={Separator} />
-        <Stack.Screen name="Tag" component={Tag} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+ useEffect(() => {
+   const subscriber = FIREBASE_AUTH.onAuthStateChanged(onAuthStateChanged);
+   return subscriber; 
+ }, []);
+
+ if (initializing) return null;
+
+ return user ? <UserStack /> : <AuthStack />;
 }
