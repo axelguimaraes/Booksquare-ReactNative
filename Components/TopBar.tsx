@@ -38,6 +38,7 @@ const TopBar: React.FC<TopBarProps> = ({ navigation }) => {
           style={styles.searchInput}
           placeholder="Pesquisar"
           placeholderTextColor="#ccc"
+          editable={false}
         />
         <TouchableOpacity style={styles.searchButton}>
           <Ionicons name="search-outline" size={24} color="black" />

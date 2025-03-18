@@ -1,11 +1,10 @@
-import { TransactionType } from "./Book";
+import { Book, TransactionType } from "./Book";
 
 export interface Transaction {
-    id: number,
-    timestamp: string,
-    idItem: string,
-    idSeller: string,
-    idBuyer: string,
+    id: string,
+    timestamp: number,
+    book: Book
+    idSender: string,
+    idReceiver: string,
     transactionType: TransactionType,
-    price?: number
 }

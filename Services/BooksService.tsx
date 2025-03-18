@@ -1,9 +1,10 @@
 import { Book, Traded, TransactionType } from "../Models/Book";
 import { FIREBASE_DB } from "../config/firebase";
-import { collection,addDoc, getDocs, Query, query, where, CollectionReference, DocumentData, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, Query, query, where, CollectionReference, DocumentData, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 // Function to fetch all books from the database
 export const getAllBooks = async (transactionType?: TransactionType): Promise<Book[]> => {
+  console.log('Getting all books')
   try {
     const booksCollection = collection(FIREBASE_DB, 'books');
     let booksQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
@@ -16,7 +17,7 @@ export const getAllBooks = async (transactionType?: TransactionType): Promise<Bo
 
     const querySnapshot = await getDocs(booksQuery);
     const books: Book[] = [];
-    
+
     querySnapshot.forEach((doc) => {
       books.push(doc.data() as Book);
     });
@@ -30,6 +31,7 @@ export const getAllBooks = async (transactionType?: TransactionType): Promise<Bo
 };
 
 export const subscribeToBooks = (transactionType, onUpdate) => {
+  console.log('Subscribing to books')
   const booksRef = collection(FIREBASE_DB, 'books');
 
   // Create a query to filter books by transaction type
@@ -60,6 +62,7 @@ export const subscribeToBooks = (transactionType, onUpdate) => {
 
 
 export const getBookInfoByISBN = async (isbn) => {
+  console.log('Getting book info by ISBN')
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
     const data = await response.json();
@@ -70,11 +73,29 @@ export const getBookInfoByISBN = async (isbn) => {
   }
 }
 
+export const getBookByIsbn = async (isbn: number): Promise<Book | null> => {
+  console.log('Getting book by ISBN');
+  try {
+    const booksCollection = collection(FIREBASE_DB, 'books');
+    const booksQuery = query(booksCollection, where('isbn', '==', isbn));
+    const querySnapshot = await getDocs(booksQuery);
+
+    if (!querySnapshot.empty) {
+      const bookData = querySnapshot.docs[0].data() as Book;
+      return bookData
+    }
+  } catch (error) {
+    console.error('Error fetching book:', error);
+    return null;
+  }
+};
+
 export const populateBookFromJson = (json: any): Book => {
+  console.log('populating book from JSON')
   const genres: string[] = json.volumeInfo.categories || [];
 
-  const photos: string[] = json.volumeInfo.imageLinks
-    ? [json.volumeInfo.imageLinks.thumbnail]
+  const photos: string[] = json.volumeInfo.imageLinks && json.volumeInfo.imageLinks.thumbnail
+    ? [json.volumeInfo.imageLinks.thumbnail.replace('http://', 'https://')] 
     : [];
 
   return {
@@ -93,7 +114,7 @@ export const populateBookFromJson = (json: any): Book => {
 };
 
 export const addBook = async (book: Book) => {
-
+  console.log('Adding book')
   const booksQuery = query(collection(FIREBASE_DB, 'books'),
     where('isbn', '==', book.isbn),
     where('currentOwner', '==', book.currentOwner)
@@ -109,6 +130,7 @@ export const addBook = async (book: Book) => {
 }
 
 export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
+  console.log('Renting book')
   try {
     const bookRef = doc(FIREBASE_DB, 'books', bookId);
 
@@ -123,7 +145,7 @@ export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
     if (bookData.rented != null) {
       throw new Error('Book is already rented');
     }
-    
+
     if (bookData.traded != null) {
       throw new Error('Book is already traded');
     }
@@ -146,6 +168,7 @@ export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
 };
 
 export const tradeBook = async ({ bookId, userId, isbn, tradedByPhotos }: { bookId: string, userId: string, isbn: number, tradedByPhotos: string[] }): Promise<void> => {
+  console.log('Trading book')
   try {
     const bookRef = doc(FIREBASE_DB, 'books', bookId);
     const bookSnapshot = await getDoc(bookRef);

@@ -7,6 +7,10 @@ import { useNavigation } from '@react-navigation/native';
 import DatePicker from '@react-native-community/datetimepicker';
 import { rentBook } from '../../Services/BooksService';
 import { FIREBASE_AUTH } from '../../config/firebase';
+import { createTransaction } from '../../Services/TransactionsService';
+import { Transaction } from '../../Models/Transaction';
+import uuid from 'react-native-uuid'
+import { getUserIdByDisplayName } from '../../Services/UsersService';
 
 const RentForm = ({ route }) => {
     const [loading, setLoading] = useState(false);
@@ -25,7 +29,16 @@ const RentForm = ({ route }) => {
             userId: FIREBASE_AUTH.currentUser.uid,
             date: selectedDate
         })
-            .then(() => {
+            .then(async () => {
+                const transaction: Transaction = {
+                    id: uuid.v4().toString(),
+                    timestamp: Date.now(),
+                    book: book,
+                    idSender: await getUserIdByDisplayName(book.currentOwner),
+                    idReceiver: FIREBASE_AUTH.currentUser.uid,
+                    transactionType: book.transactionType
+                }
+                await createTransaction(transaction).catch((error) => console.error('Error creating transaction',error))
                 alert('Livro alugado com sucesso!');
                 navigation.goBack()
             })
@@ -68,7 +81,7 @@ const RentForm = ({ route }) => {
                         <Text style={styles.valueBoxContent}>{book.genre.join(', ')}</Text>
                     </View>
 
-                    <Text style={styles.title}>Alugar até:</Text>
+                    <Text style={styles.title}>Alugar até: <Text style={{fontStyle: 'italic', color: 'grey'}}>(Clique para selecionar)</Text></Text>
                     <TouchableOpacity onPress={toggleDatePicker}>
                         <View style={styles.valueBox}>
                             <Text style={styles.valueBoxContent}>{selectedDate ? selectedDate.toLocaleDateString() : 'Selecione uma data'}</Text>
@@ -78,7 +91,7 @@ const RentForm = ({ route }) => {
                     {showDatePicker && (
                         <DatePicker
                             value={selectedDate}
-                            onChange={(event, date) => {
+                            onChange={(_event, date) => {
                                 setSelectedDate(date);
                                 toggleDatePicker(); // Close date picker after selecting a date
                             }}
