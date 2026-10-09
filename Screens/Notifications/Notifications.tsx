@@ -1,15 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import NotificationsComponent from './NotificationsComponent';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
+import { colors } from '../../Components/ui/theme';
 
 const Notifications = ({ navigation }) => {
-
-    useEffect(() => {
-        alert('Funcionalidade não implementada!\n Os dados apresentados neste ecrã são fictícios.')
-    })
-
     return (
         <View style={styles.container}>
             <TopBar navigation={navigation} />
@@ -22,12 +18,7 @@ const Notifications = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-    },
-    content: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+        backgroundColor: colors.background,
     },
 });
 

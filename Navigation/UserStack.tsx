@@ -13,47 +13,47 @@ import ChatScreen from '../Screens/Messages/ChatScreen';
 import RentForm from '../Screens/Rent/RentForm';
 import TradeForm from '../Screens/Trade/TradeForm';
 import ProfileOtherUsers from '../Screens/Profile/ProfileOtherUsers';
-import { User } from '../Models/User';
 import { Book } from '../Models/Book';
 import CheckoutScreen from '../Screens/Shopping/CheckoutScreen';
 import EditProfileScreen from '../Screens/Profile/EditProfileScreen';
-import { ShoppingCartItem } from '../Models/ShoppingCart';
+import { navigationTheme } from './theme';
 
 export type StackNavigationParamsList = {
   Home: undefined
   Notifications: undefined
   Search: undefined
   Messages: undefined
-  Profile: { userId: string }
+  Profile: undefined
   EditProfileScreen: undefined
   ProfileOtherUsers: { userId: string }
   Sell: undefined
   ShoppingCartScreen: undefined
-  ChatScreen: { currentUser: string, otherUser: string, book: Book}
-  RentForm: undefined
-  TradeForm: undefined
-  CheckoutScreen: ShoppingCartItem[]
+  // book: the listing the conversation started from, shown above the messages
+  ChatScreen: { currentUser: string, otherUser: string, book?: Book | null }
+  RentForm: { book: Book }
+  TradeForm: { book: Book }
+  CheckoutScreen: undefined
 }
 
 const Stack = createStackNavigator<StackNavigationParamsList>();
 
 export default function UserStack() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator id="UserStack" initialRouteName='Home'>
-        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-        <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} />
-        <Stack.Screen name="Search" component={Search} options={{ headerShown: false }} />
-        <Stack.Screen name="Messages" component={Messages} options={{ headerShown: false }} />
-        <Stack.Screen name="Profile" component={UserProfileScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ProfileOtherUsers" component={ProfileOtherUsers} options={{ headerShown: false }} />
-        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} options={{ headerShown: false}} />
-        <Stack.Screen name="Sell" component={AddBook} options={{ headerShown: false }} />
-        <Stack.Screen name="ShoppingCartScreen" component={ShoppingCartScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="RentForm" component={RentForm} options={{ headerShown: false }} />
-        <Stack.Screen name="TradeForm" component={TradeForm} options={{ headerShown: false }} />
-        <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} options={{headerShown: false}} />
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator id="UserStack" initialRouteName='Home' screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Notifications" component={Notifications} />
+        <Stack.Screen name="Search" component={Search} />
+        <Stack.Screen name="Messages" component={Messages} />
+        <Stack.Screen name="Profile" component={UserProfileScreen} />
+        <Stack.Screen name="ProfileOtherUsers" component={ProfileOtherUsers} />
+        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+        <Stack.Screen name="Sell" component={AddBook} />
+        <Stack.Screen name="ShoppingCartScreen" component={ShoppingCartScreen} />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
+        <Stack.Screen name="RentForm" component={RentForm} />
+        <Stack.Screen name="TradeForm" component={TradeForm} />
+        <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

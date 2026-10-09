@@ -1,50 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Text, ActivityIndicator, RefreshControl } from 'react-native';
+import { FlatList, RefreshControl } from 'react-native';
 import ChatCard from '../../Components/ChatCard';
 import { getUserById } from '../../Services/UsersService';
-import { User } from '../../Models/User';
-import { getCurrentUser } from '../../Services/AuthService';
+import { Chat } from '../../Models/Chat';
+import { AuthUser, User } from '../../Models/User';
+import { LoadingView } from '../../Components/ui/StateViews';
+import { colors } from '../../Components/ui/theme';
 
-const MessagesList = ({ data, navigation, currentUser, onUpdate }) => {
+interface Props {
+  data: Chat[];
+  navigation: any;
+  currentUser: AuthUser;
+  onUpdate: () => Promise<void>;
+}
+
+const MessagesList: React.FC<Props> = ({ data, navigation, currentUser, onUpdate }) => {
   const [otherUsers, setOtherUsers] = useState<{ [userId: string]: User }>({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchOtherUsers = async () => {
-    const users = {};
-    for (const chat of data) {
-      const otherUserId = chat.user1 === currentUser.uid ? chat.user2 : chat.user1;
-      if (!otherUsers[otherUserId]) {
-        try {
-          const user = await getUserById(otherUserId);
-          users[otherUserId] = user;
-        } catch (error) {
-          console.error('Error fetching user:', error);
-        }
-      }
-    }
-    setOtherUsers(prevState => ({ ...prevState, ...users }));
-    setLoading(false);
-  };
+  const otherUserIdOf = (chat: Chat) => (chat.user1 === currentUser.uid ? chat.user2 : chat.user1);
 
   useEffect(() => {
+    const fetchOtherUsers = async () => {
+      const missing = data.map(otherUserIdOf).filter((id) => !otherUsers[id]);
+      const users = await Promise.all(missing.map((id) => getUserById(id).catch((error) => {
+        console.error('Error fetching user:', error);
+        return null;
+      })));
+      setOtherUsers((prevState) => {
+        const next = { ...prevState };
+        users.forEach((user) => {
+          if (user) next[user.userId] = user;
+        });
+        return next;
+      });
+      setLoading(false);
+    };
+
     fetchOtherUsers();
   }, [data, currentUser]);
 
-  const handleCardPress = (item) => {
-    if (item.user1 == getCurrentUser().uid) {
-      navigation.navigate('ChatScreen', { currentUser: item.user1, otherUser: item.user2}); // User IDs
-    } else {
-      navigation.navigate('ChatScreen', { currentUser: item.user2, otherUser: item.user1}); // User IDs
-    }
-    
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await onUpdate();
+    setRefreshing(false);
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="grey" />
-      </View>
-    );
+    return <LoadingView label="A carregar mensagens" />;
   }
 
   return (
@@ -52,39 +56,29 @@ const MessagesList = ({ data, navigation, currentUser, onUpdate }) => {
       data={data}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => {
-        const otherUserId = item.user1 === currentUser.uid ? item.user2 : item.user1;
+        const otherUserId = otherUserIdOf(item);
         const otherUser = otherUsers[otherUserId];
+        const lastMessage = item.messageThread[item.messageThread.length - 1];
         return otherUser ? (
-          <TouchableOpacity onPress={() => handleCardPress(item)}>
-            <ChatCard
-              profilePhoto={otherUser.profilePhoto}
-              username={otherUser.displayName}
-              messageSnippet={item.messageThread[item.messageThread.length - 1].content}
-              timestamp={item.messageThread[item.messageThread.length - 1].timestamp}
-              isRead={item.messageThread[item.messageThread.length - 1].isRead}
-              isCurrentUser={item.messageThread[item.messageThread.length - 1].senderID === getCurrentUser().uid}
-            />
-          </TouchableOpacity>
+          <ChatCard
+            profilePhoto={otherUser.profilePhoto}
+            username={otherUser.displayName}
+            lastMessage={lastMessage}
+            isCurrentUser={lastMessage?.senderID === currentUser.uid}
+            onPress={() => navigation.navigate('ChatScreen', { currentUser: currentUser.uid, otherUser: otherUserId })}
+          />
         ) : null;
       }}
       refreshControl={
         <RefreshControl
-          refreshing={loading}
-          onRefresh={onUpdate}
-          colors={['#9Bd35A', '#689F38']}
-          progressBackgroundColor="#ffffff"
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
         />
       }
     />
   );
 };
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 export default MessagesList;

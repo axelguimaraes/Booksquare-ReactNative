@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useCallback, useState } from "react";
+import { View, Text, StyleSheet, FlatList, Alert } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import ShoppingCart from "../../Components/ShoppingCartItems";
 import {
   getCartItems,
   removeFromCart,
@@ -9,89 +9,122 @@ import {
 } from "../../Services/ShoppingCartService";
 import { getCurrentUser } from "../../Services/AuthService";
 import { ShoppingCartItem } from "../../Models/ShoppingCart";
+import { formatPrice } from "../../Utils/format";
+import Button from "../../Components/ui/Button";
+import IconButton from "../../Components/ui/IconButton";
+import ScreenHeader from "../../Components/ui/ScreenHeader";
+import { EmptyState, LoadingView } from "../../Components/ui/StateViews";
+import { Footer } from "../../Components/ui/Layout";
+import { colors, spacing, typography } from "../../Components/ui/theme";
 
 const ShoppingCartScreen = ({ navigation }) => {
-  const [cartItems, setCartItems] = useState([] as ShoppingCartItem[]);
+  const [cartItems, setCartItems] = useState<ShoppingCartItem[] | null>(null);
   const currentUser = getCurrentUser();
 
-  useEffect(() => {
-    loadCartItems();
-  }, []);
-
   const loadCartItems = async () => {
-    getCartItems(currentUser.uid)
-    .then((items: ShoppingCartItem[]) => setCartItems(items))
-    .catch((error) => console.error(error))
+    try {
+      setCartItems(await getCartItems(currentUser.uid));
+    } catch (error) {
+      console.error(error);
+      setCartItems((current) => current ?? []);
+    }
   };
+
+  // Reload when coming back, e.g. after a purchase.
+  useFocusEffect(
+    useCallback(() => {
+      loadCartItems();
+    }, [])
+  );
 
   const handleRemoveItem = async (productId: string) => {
+    setCartItems((current) => current.filter((item) => item.productId !== productId));
     try {
       await removeFromCart(currentUser.uid, productId);
-      loadCartItems();
     } catch (error) {
       console.error("Error removing item from cart:", error);
+      Alert.alert("Erro", "Não foi possível remover o livro do carrinho.");
+      loadCartItems();
     }
   };
 
-  const handleEmptyCart = async () => {
-    try {
-      await clearCart(currentUser.uid);
-      setCartItems([]);
-    } catch (error) {
-      console.error("Error clearing cart:", error);
+  const handleEmptyCart = () => {
+    Alert.alert("Esvaziar carrinho?", "Todos os livros serão removidos do carrinho.", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Esvaziar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await clearCart(currentUser.uid);
+            setCartItems([]);
+          } catch (error) {
+            console.error("Error clearing cart:", error);
+            Alert.alert("Erro", "Não foi possível esvaziar o carrinho.");
+          }
+        },
+      },
+    ]);
+  };
+
+  const renderContent = () => {
+    if (cartItems === null) {
+      return <LoadingView label="A carregar carrinho" />;
     }
-  };
 
-  const handleCheckout = () => {
-    navigation.navigate("CheckoutScreen", cartItems);
-  };
+    if (cartItems.length === 0) {
+      return (
+        <EmptyState
+          icon="cart-outline"
+          title="O seu carrinho está vazio"
+          message="Os livros à venda que adicionar ao carrinho aparecem aqui."
+          action={{ label: "Explorar livros", onPress: () => navigation.navigate("Home", undefined, { pop: true }) }}
+        />
+      );
+    }
 
-  const handleGoBack = () => {
-    navigation.goBack();
-  };
+    // Calculate total price of all items in cart
+    const totalPrice = cartItems.reduce((acc, item) => acc + (item.price ?? 0), 0);
+    const count = `${cartItems.length} ${cartItems.length === 1 ? "livro" : "livros"}`;
 
-  // Calculate total price of all items in cart
-  const totalPrice = cartItems.reduce((acc, item) => acc + item.price, 0);
+    return (
+      <>
+        <FlatList
+          data={cartItems}
+          keyExtractor={(item) => item.productId}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          renderItem={({ item }) => (
+            <View style={styles.item} accessible={false}>
+              <Ionicons name="book-outline" size={24} color={colors.primary} />
+              <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+              <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
+              <IconButton
+                icon="trash-outline"
+                color={colors.textSecondary}
+                onPress={() => handleRemoveItem(item.productId)}
+                accessibilityLabel={`Remover ${item.name} do carrinho`}
+              />
+            </View>
+          )}
+        />
+        <Footer style={styles.footer}>
+          <View style={styles.totalRow} accessible accessibilityLabel={`Total, ${count}: ${formatPrice(totalPrice)}`}>
+            <Text style={styles.totalLabel}>Total ({count})</Text>
+            <Text style={styles.totalText}>{formatPrice(totalPrice)}</Text>
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button variant="secondary" title="Esvaziar" onPress={handleEmptyCart} style={styles.button} />
+            <Button title="Finalizar compra" onPress={() => navigation.navigate("CheckoutScreen")} style={styles.button} />
+          </View>
+        </Footer>
+      </>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Carrinho de compras</Text>
-      </View>
-      <ShoppingCart cartItems={cartItems} onRemoveItem={handleRemoveItem} />
-      {cartItems.length === 0 ? (
-        <Text style={styles.noItemsText}>Nenhum item adicionado</Text>
-      ) : (
-        <>
-          <View style={styles.total}>
-            <Text style={styles.totalText}>
-              Total: {totalPrice.toFixed(2)}€
-            </Text>
-          </View>
-        </>
-      )}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          onPress={handleEmptyCart}
-          style={[styles.button, styles.emptyButton]}
-        >
-          <Text style={styles.buttonText}>Esvaziar carrinho</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleCheckout}
-          style={[
-            styles.button,
-            styles.checkoutButton,
-            cartItems.length === 0 && styles.disabledButton,
-          ]}
-          disabled={cartItems.length === 0}
-        >
-          <Text style={styles.buttonText}>Pagar</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader title="Carrinho de compras" onBack={() => navigation.goBack()} />
+      {renderContent()}
     </View>
   );
 };
@@ -99,71 +132,54 @@ const ShoppingCartScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+    backgroundColor: colors.background,
   },
-  header: {
+  item: {
     flexDirection: "row",
     alignItems: "center",
-    position: "relative",
-    width: "100%",
-    justifyContent: "center",
+    minHeight: 64,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.xs,
   },
-  backButton: {
-    position: "absolute",
-    left: 0,
-    paddingHorizontal: 10,
+  itemName: {
+    ...typography.body,
+    flex: 1,
+    color: colors.text,
+    marginLeft: spacing.md,
   },
-  title: {
-    fontSize: 20,
+  itemPrice: {
+    ...typography.body,
     fontWeight: "bold",
-    marginBottom: 10,
+    color: colors.text,
+    marginLeft: spacing.sm,
   },
-  noItemsText: {
-    fontSize: 16,
-    marginTop: 20,
-    marginBottom: 20,
-    fontWeight: "bold",
-    color: "red",
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginLeft: spacing.lg,
   },
-  total: {
-    marginTop: 20,
+  footer: {
+    flexDirection: "column",
+  },
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  totalLabel: {
+    ...typography.body,
+    color: colors.textSecondary,
   },
   totalText: {
-    fontSize: 18,
-    fontWeight: "bold",
+    ...typography.title,
+    color: colors.text,
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    paddingBottom: 10,
-    marginTop: 20,
+    gap: spacing.md,
   },
   button: {
     flex: 1,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 5,
-  },
-  emptyButton: {
-    backgroundColor: "darkgrey",
-    marginRight: 10,
-  },
-  checkoutButton: {
-    backgroundColor: "#8C756A",
-    marginLeft: 10,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-  },
-  disabledButton: {
-    backgroundColor: "lightgrey",
   },
 });
 

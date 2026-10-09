@@ -1,52 +1,53 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import getTimestampText from '../Utils/getTimestampText';
+import Avatar from './ui/Avatar';
+import { colors, spacing, typography } from './ui/theme';
 
-const ChatCard = ({ profilePhoto, username, messageSnippet, timestamp, isRead, isCurrentUser }) => {
-    const timestampText = getTimestampText(timestamp);
-    const containerStyle = isRead ? styles.container : [styles.container, styles.unreadContainer];
+interface Props {
+    profilePhoto?: string;
+    username: string;
+    // Last message of the conversation; undefined when nothing was sent yet.
+    lastMessage?: { content: string, timestamp: string, isRead: boolean };
+    isCurrentUser: boolean;
+    onPress: () => void;
+}
 
-    let messageSnippetStyle;
-    if (isCurrentUser) {
-        messageSnippetStyle = styles.currentUserMessage;
-    } else {
-        if (isRead) {
-            messageSnippetStyle = styles.messageSnippet;
-        } else {
-            messageSnippetStyle = [styles.messageSnippet, styles.bold];
-        }
-    }
-
-
-    let modifiedMessageSnippet;
-
-    if (isCurrentUser) {
-        modifiedMessageSnippet = `Tu: ${messageSnippet}`;
-    } else {
-        modifiedMessageSnippet = messageSnippet;
-    }
-
+const ChatCard: React.FC<Props> = ({ profilePhoto, username, lastMessage, isCurrentUser, onPress }) => {
+    // Unread only matters for messages the other person sent.
+    const unread = !!lastMessage && !isCurrentUser && !lastMessage.isRead;
+    const snippet = !lastMessage ? 'Sem mensagens' : isCurrentUser ? `Tu: ${lastMessage.content}` : lastMessage.content;
 
     return (
-        <View style={containerStyle}>
-            {profilePhoto ? (
-                <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
-            ) : (
-                <View style={styles.placeholder}>
-                    <Ionicons name="person-circle-outline" size={50} color="#ccc" />
-                </View>
-            )}
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [styles.container, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel={`Conversa com ${username}. ${unread ? 'Mensagem não lida. ' : ''}${snippet}`}
+        >
+            <Avatar uri={profilePhoto} size={50} />
             <View style={styles.contentContainer}>
-                <Text style={styles.username}>{username}</Text>
-                <View style={styles.messageContainer}>
-                    <Text style={messageSnippetStyle}>{modifiedMessageSnippet}</Text>
+                <View style={styles.headerRow}>
+                    <Text style={[styles.username, unread && styles.bold]} numberOfLines={1}>{username}</Text>
+                    {lastMessage && (
+                        <Text style={[styles.timestamp, unread && styles.unreadTimestamp]}>{getTimestampText(lastMessage.timestamp)}</Text>
+                    )}
+                </View>
+                <View style={styles.messageRow}>
+                    {isCurrentUser && lastMessage && (
+                        <Ionicons
+                            name={lastMessage.isRead ? 'checkmark-done' : 'checkmark'}
+                            size={16}
+                            color={lastMessage.isRead ? colors.primary : colors.textSecondary}
+                            style={styles.readIcon}
+                        />
+                    )}
+                    <Text style={[styles.messageSnippet, unread && styles.unreadSnippet]} numberOfLines={1}>{snippet}</Text>
+                    {unread && <View style={styles.unreadDot} />}
                 </View>
             </View>
-            <Text style={styles.timestamp}>{timestampText}</Text>
-            {!isRead && <View style={styles.readIconPlaceholder} />}
-            {isRead && <View style={styles.readIcon}><Ionicons name="checkmark-done" size={24} color="green" /></View>}
-        </View>
+        </Pressable>
     );
 };
 
@@ -55,64 +56,67 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        minHeight: 72,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.border,
+        backgroundColor: colors.background,
     },
-    unreadContainer: {
-        paddingRight: 20,
-    },
-    profilePhoto: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 10,
-    },
-    placeholder: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 10,
-        backgroundColor: '#f0f0f0',
-        justifyContent: 'center',
-        alignItems: 'center',
+    pressed: {
+        backgroundColor: colors.surface,
     },
     contentContainer: {
         flex: 1,
-        justifyContent: 'center',
+        marginLeft: spacing.md,
     },
-    username: {
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    messageContainer: {
+    headerRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    messageSnippet: {
-        flex: 1,
-        marginRight: 10,
-        fontWeight: 'normal',
+    username: {
+        ...typography.body,
+        fontWeight: '600',
+        color: colors.text,
+        flexShrink: 1,
     },
     bold: {
         fontWeight: 'bold',
     },
-    currentUserMessage: {
-        flex: 1,
-        marginRight: 10,
-    },
     timestamp: {
-        color: 'gray',
+        ...typography.small,
+        color: colors.textSecondary,
+        marginLeft: spacing.sm,
+    },
+    unreadTimestamp: {
+        color: colors.primary,
+        fontWeight: 'bold',
+    },
+    messageRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 2,
     },
     readIcon: {
-        padding: 10
+        marginRight: spacing.xs,
     },
-    readIconPlaceholder: {
-        width: 24,
-        height: 24,
-        marginRight: 10,
-    }
+    messageSnippet: {
+        ...typography.caption,
+        flex: 1,
+        color: colors.textSecondary,
+    },
+    unreadSnippet: {
+        color: colors.text,
+        fontWeight: 'bold',
+    },
+    unreadDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: colors.primary,
+        marginLeft: spacing.sm,
+    },
 });
 
 export default ChatCard;

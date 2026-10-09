@@ -7,7 +7,6 @@ const impl: typeof firebaseImpl = mocks.auth ? mockImpl : firebaseImpl;
 
 export const {
   loginWithEmailAndPassword,
-  loginWithGoogle,
   loginAnonymously,
   registerWithEmailAndPassword,
   getCurrentUser,

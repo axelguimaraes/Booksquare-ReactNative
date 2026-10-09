@@ -11,59 +11,35 @@ import { getFirebaseAuth } from "../../config/firebase"
 import { AuthUser, User } from "../../Models/User"
 import { addUser } from "../UsersService"
 
-export const loginWithEmailAndPassword = async (email, password): Promise<AuthUser | undefined> => {
+// Errors are thrown as Firebase AuthErrors; screens turn their codes into messages (Utils/authErrorMessage).
+
+export const loginWithEmailAndPassword = async (email: string, password: string): Promise<AuthUser> => {
     console.log('Logging with email and password')
-    try {
-        const response = await signInWithEmailAndPassword(getFirebaseAuth(), email, password)
-        return response.user
-    } catch (error: any) {
-        console.log(error)
-        alert('Erro ao tentar entrar: ' + error.message)
-    }
+    const response = await signInWithEmailAndPassword(getFirebaseAuth(), email, password)
+    return response.user
 }
 
-export const loginWithGoogle = async () => {
-    console.log('Logging with google')
-    try {
-        // TODO: Login with google
-        alert('Funcionalidade de momento não suportada.')
-    } catch (error: any) {
-        console.log(error)
-        alert('Erro ao tentar entrar: ' + error.message)
-    }
-}
-
-export const loginAnonymously = async (): Promise<AuthUser | undefined> => {
+export const loginAnonymously = async (): Promise<AuthUser> => {
     console.log('Logging anonymously')
-    try {
-        const response = await signInAnonymously(getFirebaseAuth())
-        return response.user
-    } catch (error: any) {
-        console.log(error)
-        alert('Erro ao tentar entrar: ' + error.message)
-    }
+    const response = await signInAnonymously(getFirebaseAuth())
+    return response.user
 }
 
-export const registerWithEmailAndPassword = async (email, password, displayName): Promise<AuthUser | undefined> => {
+export const registerWithEmailAndPassword = async (email: string, password: string, displayName: string): Promise<AuthUser> => {
     console.log('Registering with email and password')
-    try {
-        const userCredential = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password)
-        const user = userCredential.user
-        await updateProfile(user, { displayName: displayName })
+    const userCredential = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password)
+    const user = userCredential.user
+    await updateProfile(user, { displayName: displayName })
 
-        const newUser: User = {
-            userId: user.uid,
-            displayName: displayName,
-            email: email
-        }
-
-        await addUser(newUser)
-
-        return user
-    } catch (error: any) {
-        console.log(error)
-        alert('Erro ao tentar registar: ' + error.message)
+    const newUser: User = {
+        userId: user.uid,
+        displayName: displayName,
+        email: email
     }
+
+    await addUser(newUser)
+
+    return user
 }
 
 export const getCurrentUser = (): AuthUser | null => getFirebaseAuth().currentUser

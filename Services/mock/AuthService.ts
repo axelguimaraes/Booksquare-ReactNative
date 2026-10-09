@@ -8,7 +8,8 @@ let currentUser: AuthUser | null = null
 let restoring: Promise<void> | undefined
 const authListeners = new Set<(user: AuthUser | null) => void>()
 
-const authError = (code: string) => new Error(`Mock auth: Error (auth/${code}).`)
+// Same shape as Firebase's AuthError, so Utils/authErrorMessage handles both.
+const authError = (code: string) => Object.assign(new Error(`Mock auth: Error (auth/${code}).`), { code: `auth/${code}` })
 
 const toAuthUser = ({ uid, displayName, email, photoURL, isAnonymous }: MockAccount): AuthUser =>
     ({ uid, displayName, email, photoURL, isAnonymous })
@@ -29,75 +30,56 @@ const setSession = async (account: MockAccount | null) => {
     authListeners.forEach((listener) => listener(currentUser))
 }
 
-export const loginWithEmailAndPassword = async (email, password): Promise<AuthUser | undefined> => {
-    try {
-        const accounts = await mockStore.read('accounts')
-        const account = accounts.find((a) => !a.isAnonymous && a.email?.toLowerCase() === email?.trim().toLowerCase())
-        if (!account || account.password !== password) {
-            throw authError('invalid-credential')
-        }
-        await setSession(account)
-        return currentUser
-    } catch (error: any) {
-        console.log(error)
-        alert('Erro ao tentar entrar: ' + error.message)
+export const loginWithEmailAndPassword = async (email: string, password: string): Promise<AuthUser> => {
+    const accounts = await mockStore.read('accounts')
+    const account = accounts.find((a) => !a.isAnonymous && a.email?.toLowerCase() === email?.trim().toLowerCase())
+    if (!account || account.password !== password) {
+        throw authError('invalid-credential')
     }
+    await setSession(account)
+    return currentUser
 }
 
-export const loginWithGoogle = async () => {
-    alert('Funcionalidade de momento não suportada.')
+export const loginAnonymously = async (): Promise<AuthUser> => {
+    const account: MockAccount = {
+        uid: `mock-anonymous-${uuid.v4()}`,
+        email: null,
+        password: null,
+        displayName: null,
+        photoURL: null,
+        isAnonymous: true,
+    }
+    await mockStore.write('accounts', (accounts) => [...accounts, account])
+    await setSession(account)
+    return currentUser
 }
 
-export const loginAnonymously = async (): Promise<AuthUser | undefined> => {
-    try {
-        const account: MockAccount = {
-            uid: `mock-anonymous-${uuid.v4()}`,
-            email: null,
-            password: null,
-            displayName: null,
-            photoURL: null,
-            isAnonymous: true,
-        }
-        await mockStore.write('accounts', (accounts) => [...accounts, account])
-        await setSession(account)
-        return currentUser
-    } catch (error: any) {
-        console.log(error)
-        alert('Erro ao tentar entrar: ' + error.message)
+export const registerWithEmailAndPassword = async (email: string, password: string, displayName: string): Promise<AuthUser> => {
+    const trimmedEmail = email.trim()
+    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+        throw authError('invalid-email')
     }
-}
-
-export const registerWithEmailAndPassword = async (email, password, displayName): Promise<AuthUser | undefined> => {
-    try {
-        const trimmedEmail = email.trim()
-        if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-            throw authError('invalid-email')
-        }
-        if (password.length < 6) {
-            throw authError('weak-password')
-        }
-
-        const account: MockAccount = {
-            uid: `mock-user-${uuid.v4()}`,
-            email: trimmedEmail,
-            password,
-            displayName,
-            photoURL: null,
-            isAnonymous: false,
-        }
-        await mockStore.write('accounts', (accounts) => {
-            if (accounts.some((a) => a.email?.toLowerCase() === trimmedEmail.toLowerCase())) {
-                throw authError('email-already-in-use')
-            }
-            return [...accounts, account]
-        })
-        await addUser({ userId: account.uid, displayName, email: trimmedEmail })
-        await setSession(account)
-        return currentUser
-    } catch (error: any) {
-        console.log(error)
-        alert('Erro ao tentar registar: ' + error.message)
+    if (password.length < 6) {
+        throw authError('weak-password')
     }
+
+    const account: MockAccount = {
+        uid: `mock-user-${uuid.v4()}`,
+        email: trimmedEmail,
+        password,
+        displayName,
+        photoURL: null,
+        isAnonymous: false,
+    }
+    await mockStore.write('accounts', (accounts) => {
+        if (accounts.some((a) => a.email?.toLowerCase() === trimmedEmail.toLowerCase())) {
+            throw authError('email-already-in-use')
+        }
+        return [...accounts, account]
+    })
+    await addUser({ userId: account.uid, displayName, email: trimmedEmail })
+    await setSession(account)
+    return currentUser
 }
 
 export const getCurrentUser = (): AuthUser | null => currentUser

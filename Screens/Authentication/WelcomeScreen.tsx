@@ -1,107 +1,100 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, ActivityIndicator } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { loginAnonymously } from '../../Services/AuthService';
+import { getAuthErrorMessage } from '../../Utils/authErrorMessage';
+import Button from '../../Components/ui/Button';
+import { colors, spacing, typography } from '../../Components/ui/theme';
 
 interface LoginScreenProps {
   navigation: any; // Adjust the type according to your navigation prop type
 }
 
 const WelcomeScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
-
   const [loading, setLoading] = useState(false)
-
-  const handleLogin = () => {
-    navigation.navigate('LoginScreen')
-  }
+  const insets = useSafeAreaInsets();
 
   const handleEnterAsGuest = async () => {
     setLoading(true);
     try {
+      // On success the app switches to the signed-in screens.
       await loginAnonymously();
     } catch (error) {
       console.error('Error logging in anonymously:', error);
-      // Handle error, e.g., display an alert
-    } finally {
+      Alert.alert('Não foi possível entrar', getAuthErrorMessage(error));
       setLoading(false);
     }
   };
 
-
-  const handleRegister = () => {
-    navigation.navigate('RegisterScreen')
-  }
-
   return (
-    <View style={styles.container}>
-      {/* Logo */}
-      <View style={styles.logoContainer}>
-        {/* Your logo component goes here */}
-        <Image source={require('../../assets/BookSquare_final.png') as ImageSourcePropType} style={styles.logo} />
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + spacing.xl }]}
+    >
+      {/* The logo artwork includes the app name and tagline */}
+      <Image
+        source={require('../../assets/BookSquare_final.png')}
+        style={styles.logo}
+        accessible
+        accessibilityLabel="Booksquare. Turn the Page, Trade the Tale."
+      />
+
+      <View style={styles.actions}>
+        <Button variant="onPrimary" title="Entrar" onPress={() => navigation.navigate('LoginScreen')} />
+        <Button
+          variant="outlineOnPrimary"
+          title="Entrar como convidado"
+          onPress={handleEnterAsGuest}
+          loading={loading}
+          accessibilityHint="Explore os livros sem conta. Comprar, vender e enviar mensagens requer uma conta."
+        />
+        <Pressable
+          style={styles.link}
+          onPress={() => navigation.navigate('RegisterScreen')}
+          accessibilityRole="link"
+          accessibilityLabel="Não tem uma conta? Registe-se"
+        >
+          <Text style={styles.registerText}>Não tem uma conta? <Text style={styles.linkEmphasis}>Registe-se</Text></Text>
+        </Pressable>
       </View>
-
-      {/* Login Buttons */}
-
-      <View style={styles.loginContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
-        </TouchableOpacity>
-
-        {loading ? <ActivityIndicator size="large" color="white" />
-          : <>
-            <TouchableOpacity style={styles.button} onPress={handleEnterAsGuest}>
-              <Text style={styles.buttonText}>Entrar como convidado</Text>
-            </TouchableOpacity>
-          </>
-        }
-        <TouchableOpacity onPress={handleRegister}>
-          <Text style={styles.registerText}>Não tem uma conta? Registe-se</Text>
-        </TouchableOpacity>
-      </View>
-
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#8C756A'
+  screen: {
+    backgroundColor: colors.primary,
   },
-  logoContainer: {
-    width: '100%',
+  container: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: spacing.xl,
   },
   logo: {
-    height: 400,
-    resizeMode: 'contain',
+    width: '100%',
+    maxWidth: 400,
+    height: undefined,
+    aspectRatio: 1,
   },
-  loginContainer: {
-    flex: 1,
+  actions: {
+    width: '100%',
+    maxWidth: 400,
+    gap: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  link: {
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  button: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 50,
-    marginBottom: 20,
-    width: 300,
-    elevation: 5
-  },
-  buttonText: {
-    color: '#8C756A',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
   registerText: {
-    marginTop: 20,
-    color: 'white',
-    fontSize: 16,
+    ...typography.body,
+    color: colors.onPrimary,
+  },
+  linkEmphasis: {
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
 });
 

@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
-import BottomBar from '../../Components/BottomBar';
-import { Ionicons } from '@expo/vector-icons';
-import { User } from '../../Models/User';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { StackNavigationParamsList } from '../../Navigation/UserStack';
-import { getUserByDisplayName, getUserById } from '../../Services/UsersService';
+import { getUserById } from '../../Services/UsersService';
+import { getAllBooks } from '../../Services/BooksService';
 import { getCurrentUser } from '../../Services/AuthService';
+import { User } from '../../Models/User';
+import { Book } from '../../Models/Book';
+import { requireAccount } from '../../Utils/requireAccount';
+import { useBookAction } from '../../Utils/useBookAction';
+import BookCard from '../../Components/BookCard';
+import Avatar from '../../Components/ui/Avatar';
+import Button from '../../Components/ui/Button';
+import ScreenHeader from '../../Components/ui/ScreenHeader';
+import { EmptyState, LoadingView } from '../../Components/ui/StateViews';
+import { colors, radius, spacing, typography } from '../../Components/ui/theme';
 
 type ProfileOtherUsersNavigationProp = StackNavigationProp<StackNavigationParamsList, 'ProfileOtherUsers'>;
 type ProfileOtherUsersRouteProp = RouteProp<StackNavigationParamsList, 'ProfileOtherUsers'>;
@@ -22,179 +31,125 @@ const ProfileOtherUsers: React.FC<Props> = ({ navigation, route }) => {
 
   const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
+  const [books, setBooks] = useState<Book[] | null>(null);
+  const handleAction = useBookAction();
+  const isSelf = userId === getCurrentUser()?.uid;
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     getUserById(userId)
-      .then((userData) => {
+      .then(async (userData) => {
         setUser(userData)
+        setLoading(false);
+        if (userData) {
+          // Listings are linked to their owner by display name.
+          const allBooks = await getAllBooks();
+          setBooks(allBooks.filter((book) => book.currentOwner === userData.displayName));
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching user:', error);
         setLoading(false);
       });
   }, [userId]);
 
-  const handleMessageButton = async () => {
-    if (loading) return
-    let currentUser: User;
-    await getUserById(getCurrentUser().uid).then((user) => currentUser = user)
-
-    navigation.navigate('ChatScreen', { currentUser: currentUser.userId, otherUser: user.userId, book: null });
+  const handleMessageButton = () => {
+    if (!requireAccount()) return
+    navigation.navigate('ChatScreen', { currentUser: getCurrentUser().uid, otherUser: user.userId, book: null });
   }
 
-  const renderListItem = ({ item }) => (
-    <Text style={styles.listItem}>{item}</Text>
-  );
+  const renderContent = () => {
+    if (loading) {
+      return <LoadingView label="A carregar perfil" />;
+    }
+    if (!user) {
+      return <EmptyState icon="person-outline" title="Utilizador não encontrado" message="Este perfil já não está disponível." />;
+    }
+
+    const header = (
+      <>
+        <View style={styles.profileContainer}>
+          <Avatar uri={user.profilePhoto} size={88} />
+          <View style={styles.profileInfo}>
+            <Text style={styles.name} accessibilityRole="header">{user.displayName}</Text>
+            <Text style={styles.email}>{user.email}</Text>
+          </View>
+        </View>
+        {!isSelf && (
+          <Button title="Enviar mensagem" icon="chatbox-ellipses-outline" onPress={handleMessageButton} style={styles.messageButton} />
+        )}
+        <Text style={styles.sectionTitle} accessibilityRole="header">Livros publicados</Text>
+      </>
+    );
+
+    return (
+      <FlatList
+        data={books ?? []}
+        renderItem={({ item }) => <BookCard book={item} onActionButton={() => handleAction(item)} />}
+        keyExtractor={(item) => item.id ?? String(item.isbn)}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}
+        ListHeaderComponent={header}
+        ListEmptyComponent={
+          books === null ? (
+            <ActivityIndicator color={colors.primary} style={styles.listMessage} accessibilityLabel="A carregar livros" />
+          ) : (
+            <Text style={styles.listMessage}>{user.displayName} não tem livros disponíveis de momento.</Text>
+          )
+        }
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/* TopBar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Perfil</Text>
-        <View></View>
-      </View>
-
-      <View style={styles.containerInside}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#8C756A" />
-        ) : (
-          <>
-            {/* Profile */}
-            {
-              user && ( // Conditionally render profile when user is not null
-                <View style={styles.profileContainer}>
-                  {user.profilePhoto ? (
-                    <Image source={{ uri: user.profilePhoto }} style={styles.profilePhoto} />
-                  ) : (
-                    <View style={styles.profilePhoto}>
-                      <Ionicons name="person-circle-outline" size={100} color="#ccc" />
-                    </View>
-                  )}
-                  <View style={styles.profileInfo}>
-                    <Text style={styles.name}>{user.displayName}</Text>
-                    <Text style={styles.email}>{user.email}</Text>
-                  </View>
-                </View>
-              )
-            }
-
-            {/* Lazy List */}
-            <View style={styles.lazyListContainer}>
-              <Text style={styles.lazyListTitle}>Histórico de transações</Text>
-              <FlatList
-                data={['Item 1', 'Item 2', 'Item 3']} // Example data for LazyList
-                renderItem={renderListItem}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            </View>
-
-            {/* Logout Button */}
-            <TouchableOpacity style={styles.messageButton} onPress={handleMessageButton}>
-              <Text style={styles.messageText}>Enviar mensagem</Text>
-              <View style={{ paddingLeft: 30 }}>
-                <Ionicons name='chatbox-ellipses-outline' color='white' size={25} />
-              </View>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-
-      {/* Bottom Bar */}
-      <BottomBar navigation={navigation} />
-    </View >
+      <ScreenHeader title="Perfil" onBack={() => navigation.goBack()} />
+      {renderContent()}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //padding: 10
+    backgroundColor: colors.background,
   },
-  containerInside: {
-    flex: 1,
-    padding: 10
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-  },
-  backButton: {
-    fontSize: 20,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  editButton: {
-    fontSize: 16,
-    color: 'blue',
+  content: {
+    padding: spacing.lg,
   },
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-  },
-  profilePhoto: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginRight: 10,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
   },
   profileInfo: {
     flex: 1,
+    marginLeft: spacing.lg,
   },
   name: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    ...typography.heading,
+    color: colors.text,
   },
   email: {
-    fontSize: 16,
-    color: 'gray',
-  },
-  lazyListContainer: {
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    marginTop: 10,
-    flex: 1,
-  },
-  lazyListTitle: {
-    color: 'black',
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  listItem: {
-    padding: 10,
-    fontSize: 16,
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   messageButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#8C756A',
-    flexDirection: 'row',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 15
+    marginTop: spacing.md,
   },
-  messageText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
+  sectionTitle: {
+    ...typography.heading,
+    color: colors.text,
+    marginTop: spacing.xl,
+    marginBottom: spacing.md,
   },
-  anonymousContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  anonymousText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center'
+  listMessage: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: spacing.lg,
   },
 });
 

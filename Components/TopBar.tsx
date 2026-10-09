@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp } from '@react-navigation/native';
 import { listenForCartChanges } from '../Services/ShoppingCartService';
-import IconBadge from 'react-native-icon-badge';
-import { getCurrentUser } from '../Services/AuthService';
+import { requireAccount } from '../Utils/requireAccount';
+import IconButton from './ui/IconButton';
+import { colors, radius, spacing } from './ui/theme';
 
 interface TopBarProps {
   navigation: NavigationProp<any>;
 }
 
+// App bar of the main screens: search, app name and shopping cart.
 const TopBar: React.FC<TopBarProps> = ({ navigation }) => {
   const [shoppingCartCount, setShoppingCartCount] = useState(0)
 
@@ -24,88 +26,70 @@ const TopBar: React.FC<TopBarProps> = ({ navigation }) => {
   }, []);
 
   const navigateToShoppingCart = () => {
-    if (getCurrentUser().isAnonymous) {
-      alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
-      return
-    }
+    if (!requireAccount()) return
     navigation.navigate('ShoppingCartScreen', undefined, { pop: true })
   }
 
   return (
     <View style={styles.appBar}>
-      <View style={styles.appBarLeft}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Pesquisar"
-          placeholderTextColor="#ccc"
-          editable={false}
-        />
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search-outline" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.appBarTitle}>BookSquare</Text>
-      <TouchableOpacity style={styles.cartIcon} onPress={navigateToShoppingCart}>
-        <IconBadge
-          MainElement={<Ionicons name="cart-outline" size={35} color="white" />}
-          BadgeElement={<Text style={styles.badgeText}>{shoppingCartCount}</Text>}
-          IconBadgeStyle={styles.iconBadge}
-          Hidden={shoppingCartCount === 0}
-        />
-      </TouchableOpacity>
+      <Pressable
+        style={({ pressed }) => [styles.searchField, pressed && styles.pressed]}
+        onPress={() => navigation.navigate('Search')}
+        accessibilityRole="search"
+        accessibilityLabel="Pesquisar livros"
+      >
+        <Ionicons name="search-outline" size={18} color={colors.textSecondary} />
+        <Text style={styles.searchPlaceholder} numberOfLines={1}>Pesquisar</Text>
+      </Pressable>
+      <Text style={styles.appBarTitle} accessibilityRole="header" numberOfLines={1}>BookSquare</Text>
+      <IconButton
+        icon="cart-outline"
+        size={30}
+        color={colors.onPrimary}
+        badge={shoppingCartCount}
+        onPress={navigateToShoppingCart}
+        accessibilityLabel={shoppingCartCount > 0 ? `Carrinho de compras, ${shoppingCartCount} ${shoppingCartCount === 1 ? 'item' : 'itens'}` : 'Carrinho de compras'}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   appBar: {
-    backgroundColor: '#8C756A',
+    backgroundColor: colors.primary,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    height: 50,
-    paddingHorizontal: 10,
+    minHeight: 56,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
     elevation: 4,
   },
-  appBarLeft: {
+  searchField: {
+    flex: 1,
+    maxWidth: 170,
+    minHeight: 40,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
   },
-  searchInput: {
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    width: 150,
-    marginRight: 10,
+  pressed: {
+    opacity: 0.8,
   },
-  searchButton: {
-    position: 'absolute',
-    right: 20,
-    top: 5,
+  searchPlaceholder: {
+    color: colors.textSecondary,
+    fontSize: 15,
+    marginLeft: spacing.xs,
+    flexShrink: 1,
   },
   appBarTitle: {
-    color: '#fff',
+    flex: 1,
+    color: colors.onPrimary,
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  cartIcon: {
-    padding: 5,
-  },
-  iconBadge: {
-    position: 'absolute',
-    top: 1,
-    right: 1,
-    width: 15,
-    height: 15,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FF0000'
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 11
+    textAlign: 'center',
+    marginHorizontal: spacing.sm,
   },
 });
 

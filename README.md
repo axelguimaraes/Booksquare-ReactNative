@@ -54,6 +54,8 @@ The app runs without any configuration: when the Firebase variables are missing,
 
 To use Firebase, or to choose per feature between mocks and real data, copy [.env.example](.env.example) to `.env.local` and fill it in. Each `EXPO_PUBLIC_MOCK_*` flag (auth, users, books, cart, chat, transactions, storage, book lookup) takes `true` or `false`. Restart with `npx expo start --clear` after changing it. The app logs which features are mocked at startup.
 
+The ISBN lookup uses the Google Books API. Without a key, requests share a global daily quota that is often exhausted; set `EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY` to use your own, or `EXPO_PUBLIC_MOCK_BOOK_LOOKUP=true` to work offline.
+
 Under the hood, each service in [Services/](Services/) picks between its Firebase implementation ([Services/firebase/](Services/firebase/)) and its mock ([Services/mock/](Services/mock/)) based on [config/dataSources.ts](config/dataSources.ts).
 
 ## Technologies Used

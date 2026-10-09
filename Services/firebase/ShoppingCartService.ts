@@ -3,6 +3,7 @@ import { getFirestoreDb } from '../../config/firebase';
 import { ShoppingCartItem } from '../../Models/ShoppingCart';
 import { Book } from '../../Models/Book';
 import uuid from 'react-native-uuid';
+import { Alert } from 'react-native';
 import { getCurrentUser } from '../AuthService';
 import { purchaseBook } from '../BooksService';
 
@@ -26,7 +27,7 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
             const items = cartData.items;
             const existingBook = items.find((item: ShoppingCartItem) => item.isbn === book.isbn);
             if (existingBook) {
-                alert('Este livro já se encontra no carrinho de compras!');
+                Alert.alert('Já está no carrinho', `"${book.title}" já se encontra no seu carrinho de compras.`);
                 return; // Exit the function if the book already exists in the cart
             }
         }
@@ -42,7 +43,7 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
             const updatedItems = [...cartData.items, item];
             await updateDoc(cartDocRef, { items: updatedItems });
         }
-        alert('Item adicionado ao carrinho!');
+        Alert.alert('Adicionado ao carrinho', `"${book.title}" foi adicionado ao seu carrinho de compras.`);
     } catch (error) {
         console.error('Error adding item to shopping cart:', error);
         throw error;

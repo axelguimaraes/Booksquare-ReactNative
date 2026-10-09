@@ -1,4 +1,5 @@
 import uuid from 'react-native-uuid';
+import { Alert } from 'react-native';
 import { ShoppingCart, ShoppingCartItem } from '../../Models/ShoppingCart';
 import { Book } from '../../Models/Book';
 import { getCurrentUser } from '../AuthService';
@@ -30,7 +31,11 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
             alreadyInCart = items.some((existing) => existing.isbn === book.isbn);
             return alreadyInCart ? items : [...items, item];
         });
-        alert(alreadyInCart ? 'Este livro já se encontra no carrinho de compras!' : 'Item adicionado ao carrinho!');
+        if (alreadyInCart) {
+            Alert.alert('Já está no carrinho', `"${book.title}" já se encontra no seu carrinho de compras.`);
+        } else {
+            Alert.alert('Adicionado ao carrinho', `"${book.title}" foi adicionado ao seu carrinho de compras.`);
+        }
     } catch (error) {
         console.error('Error adding item to shopping cart:', error);
         throw error;

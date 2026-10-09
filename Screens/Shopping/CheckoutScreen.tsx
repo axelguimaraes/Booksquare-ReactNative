@@ -1,57 +1,49 @@
-import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, TouchableOpacity, View, Text, ActivityIndicator } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, View, Text, ScrollView, Alert } from "react-native";
 import { getCartItems, purchaseItems } from "../../Services/ShoppingCartService";
-import { ShoppingCartItem } from "../../Models/ShoppingCart";
 import { getCurrentUser } from "../../Services/AuthService";
-import { Book } from "../../Models/Book";
 import { getBookByIsbn } from "../../Services/BooksService";
-import { Transaction } from "../../Models/Transaction";
-import uuid from 'react-native-uuid'
 import { getUserIdByDisplayName } from "../../Services/UsersService";
 import { createTransaction } from "../../Services/TransactionsService";
+import { ShoppingCartItem } from "../../Models/ShoppingCart";
+import { Book } from "../../Models/Book";
+import { formatPrice } from "../../Utils/format";
+import uuid from 'react-native-uuid'
+import Banner from "../../Components/ui/Banner";
+import Button from "../../Components/ui/Button";
+import ScreenHeader from "../../Components/ui/ScreenHeader";
+import { LoadingView } from "../../Components/ui/StateViews";
+import { Footer } from "../../Components/ui/Layout";
+import { colors, radius, spacing, typography } from "../../Components/ui/theme";
 
-
-const CheckoutScreen = () => {
+const CheckoutScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false)
-  const [cartItems, setCartItems] = useState([] as ShoppingCartItem[])
-  const navigation = useNavigation();
-  const [books, setBooks] = useState<Book[]>(null)
+  const [cartItems, setCartItems] = useState<ShoppingCartItem[] | null>(null)
+  const [books, setBooks] = useState<Book[] | null>(null)
 
   useEffect(() => {
-    getCartItems(getCurrentUser().uid).then((items: ShoppingCartItem[]) => {
-      if (items !== null || items.length > 0) {
-        setCartItems(items);
-      }
-    })
-  }, []);
-
-  useEffect(() => {
-    const fetchBooks = async () => {
+    const load = async () => {
       try {
-        const fetchedBooks: Book[] = [];
-        for (let item of cartItems) {
-          const book = await getBookByIsbn(item.isbn);
-          if (book) {
-            fetchedBooks.push(book);
-          }
-        }
-        setBooks(fetchedBooks);
+        const items = await getCartItems(getCurrentUser().uid);
+        setCartItems(items);
+        const fetchedBooks = await Promise.all(items.map((item) => getBookByIsbn(item.isbn)));
+        setBooks(fetchedBooks.filter(Boolean));
       } catch (error) {
         console.error(error);
+        Alert.alert("Erro", "Não foi possível carregar a encomenda.");
+        setCartItems((current) => current ?? []);
+        setBooks([]);
       }
     };
-  
-    fetchBooks();
-  }, [cartItems]);
+    load();
+  }, []);
 
   const handleConfirmPayButton = async () => {
     setLoading(true);
-    
+
     try {
       await purchaseItems(cartItems);
-      
+
       for (const book of books) {
         const transaction = {
           id: uuid.v4().toString(),
@@ -61,47 +53,56 @@ const CheckoutScreen = () => {
           idReceiver: getCurrentUser().uid,
           transactionType: book.transactionType
         };
-  
+
         await createTransaction(transaction).catch((error) => console.error('Error creating transaction', error));
       }
-      
-      alert('Pagamento efetuado com sucesso!');
-      navigation.goBack();
-      navigation.goBack();
+
+      Alert.alert("Compra concluída", "Pode consultar os livros comprados no histórico de transações do seu perfil.");
+      navigation.popTo("Home");
     } catch (error) {
       console.error(error);
-      alert('Erro ao processar pagamento!');
-    } finally {
+      Alert.alert("Não foi possível concluir a compra", "Ocorreu um erro ao processar o pagamento. Tente novamente.");
       setLoading(false);
     }
   };
-  
+
+  const total = (cartItems ?? []).reduce((acc, item) => acc + (item.price ?? 0), 0);
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={30} color="grey" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Checkout</Text>
-        <View style={{ flex: 1 }} />
-      </View>
+      <ScreenHeader title="Finalizar compra" onBack={() => navigation.goBack()} />
+      {cartItems === null ? (
+        <LoadingView label="A carregar encomenda" />
+      ) : (
+        <>
+          <ScrollView contentContainerStyle={styles.content}>
+            <Banner message="O pagamento ainda é simulado: nenhum valor será cobrado." />
 
-      <View style={styles.bodyContainer}>
-        <Text style={styles.textMessage}>
-          Este ecrã serve para simular o checkout e pagamento dos livros.
-          Como essa funcionalidade ainda não está disponível, este ecrã serve um propósito meramente ilustrativo.
-        </Text>
-        {loading ? (
-          <TouchableOpacity style={styles.confirmPayButton} disabled={true}>
-            <ActivityIndicator size='small' color='white' />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.confirmPayButton} onPress={handleConfirmPayButton}>
-            <Text style={styles.confirmPayText}>Confirmar Pagamento</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+            <Text style={styles.sectionTitle} accessibilityRole="header">Resumo da encomenda</Text>
+            <View style={styles.summary}>
+              {cartItems.map((item) => (
+                <View key={item.productId} style={styles.row}>
+                  <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+                  <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
+                </View>
+              ))}
+              <View style={[styles.row, styles.totalRow]}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalValue}>{formatPrice(total)}</Text>
+              </View>
+            </View>
+          </ScrollView>
+          <Footer>
+            <Button
+              title={`Confirmar pagamento · ${formatPrice(total)}`}
+              onPress={handleConfirmPayButton}
+              loading={loading}
+              disabled={books === null || cartItems.length === 0}
+              style={styles.payButton}
+            />
+          </Footer>
+        </>
+      )}
     </View>
   );
 };
@@ -109,49 +110,54 @@ const CheckoutScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+    backgroundColor: colors.background,
   },
-  topBar: {
+  content: {
+    padding: spacing.lg,
+  },
+  sectionTitle: {
+    ...typography.heading,
+    color: colors.text,
+    marginTop: spacing.xl,
+    marginBottom: spacing.md,
+  },
+  summary: {
+    padding: spacing.lg,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+  },
+  row: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    width: "100%",
-    paddingHorizontal: 10,
-    paddingTop: 10,
+    alignItems: "flex-start",
+    paddingVertical: spacing.xs,
   },
-  backButton: {
-    paddingRight: 20, // Added spacing to ensure proper alignment
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  bodyContainer: {
-    padding: 20,
+  itemName: {
+    ...typography.body,
     flex: 1,
-    width: '100%',
-    alignContent: 'center',
-    alignItems: 'center',
-    justifyContent: 'center'
+    color: colors.text,
+    marginRight: spacing.md,
   },
-  textMessage: {
-    textAlign: 'center',
-    color: 'grey',
-    fontSize: 18
+  itemPrice: {
+    ...typography.body,
+    color: colors.text,
   },
-  confirmPayButton: {
-    backgroundColor: "#8C756A",
-    paddingHorizontal: 50,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginVertical: 10,
+  totalRow: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
-  confirmPayText: {
-    fontWeight: "bold",
-    color: "white",
+  totalLabel: {
+    ...typography.heading,
+    color: colors.text,
+  },
+  totalValue: {
+    ...typography.heading,
+    color: colors.text,
+  },
+  payButton: {
+    flex: 1,
   },
 });
 

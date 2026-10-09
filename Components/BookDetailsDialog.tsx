@@ -1,309 +1,328 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Modal, Image, StyleSheet, TouchableOpacity, ScrollView, FlatList, ImageResizeMode, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Modal, Image, StyleSheet, ScrollView, ImageResizeMode, Alert, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Book, TransactionType } from '../Models/Book';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Book } from '../Models/Book';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationParamsList } from '../Navigation/UserStack';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { getUserByDisplayName, getUserById, getUserIdByDisplayName } from '../Services/UsersService';
+import { getUserByDisplayName, getUserIdByDisplayName } from '../Services/UsersService';
 import { getCurrentUser } from '../Services/AuthService';
+import { getActionIcon, getActionLabel, getPriceLabel } from '../Utils/bookLabels';
+import { requireAccount } from '../Utils/requireAccount';
+import BookCover from './BookCover';
+import Button from './ui/Button';
+import IconButton from './ui/IconButton';
+import ScreenHeader from './ui/ScreenHeader';
+import { Footer } from './ui/Layout';
+import { colors, radius, spacing, typography } from './ui/theme';
 
 interface Props {
   book: Book;
   visible: boolean;
   onClose: () => void;
   onActionButton: () => void;
+  // false when previewing a book that is not listed yet (add book flow): shows "Selecionar livro".
   hasTransactionType: boolean
 }
 
+const PHOTO_HEIGHT = 300;
+
 const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionButton, hasTransactionType }) => {
   const navigation = useNavigation<StackNavigationProp<StackNavigationParamsList>>()
-  const [userId, setUserId] = useState<string | null>(null)
   const [sizeMode, setSizeMode] = useState<ImageResizeMode>("contain");
-  const [loading, setLoading] = useState(false);
+  const [contacting, setContacting] = useState(false);
   const [photoWidth, setPhotoWidth] = useState(0);
   const [photoIndex, setPhotoIndex] = useState(0);
 
-  useEffect(() => {
-    const fetchUserId = async () => {
-      const id = await getUserIdByDisplayName(book.currentOwner)
-      setUserId(id)
-    }
-    fetchUserId()
-  }, [book.currentOwner])
+  const isOwnBook = !!book.currentOwner && book.currentOwner === getCurrentUser()?.displayName;
+  const price = getPriceLabel(book);
 
-  const handleOwnerClick = () => {
-    onClose()
-    if (book.currentOwner === getCurrentUser().displayName) {
+  // The owner is looked up only when needed, not for every card in a list.
+  const handleOwnerClick = async () => {
+    if (isOwnBook) {
+      onClose()
       navigation.navigate('Profile');
-    } else {
-      navigation.navigate('ProfileOtherUsers', { userId: userId });
+      return
     }
+    const userId = await getUserIdByDisplayName(book.currentOwner).catch(() => null)
+    if (!userId) {
+      Alert.alert('Perfil indisponível', 'Não foi possível abrir o perfil de quem publicou este livro.');
+      return
+    }
+    onClose()
+    navigation.navigate('ProfileOtherUsers', { userId });
   }
 
   const handleExpandImage = () => {
-    if (sizeMode == "cover") {
-      setSizeMode("contain")
-    }
-    if (sizeMode == "contain") {
-      setSizeMode("cover")
-    }
+    setSizeMode((mode) => (mode === 'contain' ? 'cover' : 'contain'));
   };
 
   const onContactButton = async () => {
-    if (getCurrentUser().isAnonymous) {
-      alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
-      return
-    }
-    setLoading(true);
+    if (!requireAccount()) return
+    setContacting(true);
     try {
-        const owner = await getUserByDisplayName(book.currentOwner);
-
-        if (owner) {
-            navigation.navigate('ChatScreen', { currentUser: getCurrentUser().uid, otherUser: owner.userId, book: book });
-        } else {
-            alert('Erro ao buscar utilizador!');
-        }
+      const owner = await getUserByDisplayName(book.currentOwner);
+      if (owner) {
+        onClose()
+        navigation.navigate('ChatScreen', { currentUser: getCurrentUser().uid, otherUser: owner.userId, book: book });
+      } else {
+        Alert.alert('Utilizador não encontrado', 'Não foi possível contactar quem publicou este livro.');
+      }
     } catch (error) {
-        console.error('Error fetching users:', error);
-        alert('Erro ao buscar utilizador!');
+      console.error('Error fetching users:', error);
+      Alert.alert('Erro', 'Não foi possível contactar quem publicou este livro. Tente novamente.');
+    } finally {
+      setContacting(false);
     }
-    setLoading(false);
-    onClose()
   }
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={true}
+      presentationStyle="fullScreen"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          {/* Close button (X icon) */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color="black" />
-          </TouchableOpacity>
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        <View style={styles.container}>
+          <ScreenHeader title="Detalhes do livro" onBack={onClose} backIcon="close" backLabel="Fechar" />
 
-          {/* Photos */}
-          <View style={styles.photosContainer} onLayout={(e) => setPhotoWidth(e.nativeEvent.layout.width)}>
-            <ScrollView
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={(e) => setPhotoIndex(Math.round(e.nativeEvent.contentOffset.x / photoWidth))}
-            >
-              {book.photos.map((imageUrl, index) => (
-                <View key={index} style={{ width: photoWidth, height: '100%', position: 'relative' }}>
-                  <Image source={{ uri: imageUrl }} style={styles.bookImage} resizeMode={sizeMode} />
-                  <TouchableOpacity style={styles.expandIcon} onPress={() => handleExpandImage()}>
-                    <Ionicons name="expand" size={24} color="white" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-            {book.photos.length > 1 && (
-              <View style={styles.pagination}>
-                {book.photos.map((_, index) => (
-                  <View key={index} style={[styles.dot, index === photoIndex && styles.activeDot]} />
+          <ScrollView contentContainerStyle={styles.content}>
+            {/* Photos */}
+            {book.photos.length > 0 ? (
+              <View onLayout={(e) => setPhotoWidth(e.nativeEvent.layout.width)}>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={(e) => setPhotoIndex(Math.round(e.nativeEvent.contentOffset.x / photoWidth))}
+                  accessibilityLabel={`Fotos do livro, ${book.photos.length}`}
+                >
+                  {book.photos.map((imageUrl, index) => (
+                    <View key={index} style={{ width: photoWidth, height: PHOTO_HEIGHT }}>
+                      <Image
+                        source={{ uri: imageUrl }}
+                        style={styles.bookImage}
+                        resizeMode={sizeMode}
+                        accessibilityLabel={`Foto ${index + 1} de ${book.photos.length}`}
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+                <IconButton
+                  icon={sizeMode === 'contain' ? 'expand' : 'contract'}
+                  color={colors.onPrimary}
+                  onPress={handleExpandImage}
+                  accessibilityLabel={sizeMode === 'contain' ? 'Ampliar foto' : 'Mostrar foto completa'}
+                  style={styles.expandIcon}
+                />
+                {book.photos.length > 1 && (
+                  <View style={styles.pagination} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                    {book.photos.map((_, index) => (
+                      <View key={index} style={[styles.dot, index === photoIndex && styles.activeDot]} />
+                    ))}
+                  </View>
+                )}
+              </View>
+            ) : (
+              <BookCover width={200} height={PHOTO_HEIGHT} style={styles.placeholderCover} />
+            )}
+
+            {/* Book details */}
+            <View style={styles.row}>
+              <Text style={styles.title} accessibilityRole="header">{book.title}</Text>
+              {!!price && <Text style={styles.price}>{price}</Text>}
+            </View>
+            <Text style={styles.authorYear}>{book.author} · {book.year}</Text>
+
+            {book.genre.length > 0 && (
+              <View style={styles.tagsContainer}>
+                {book.genre.map((tag) => (
+                  <Text key={tag} style={styles.tag}>{tag}</Text>
                 ))}
               </View>
             )}
-          </View>
 
-          {/* Book details */}
-          <View style={styles.bookDetails}>
-            <View style={styles.row}>
-              <Text style={styles.title}>{book.title}</Text>
-              {book.transactionType === TransactionType.SALE && book.price &&
-                <Text style={styles.price}>Preço: {book.price}€</Text>
-              }
-            </View>
-            <Text style={styles.authorYear}>{book.year}, {book.author}</Text>
-
-            {/* Scrollable Description */}
-            <ScrollView style={styles.descriptionContainer}>
-              <Text style={styles.description}>{book.description}</Text>
-            </ScrollView>
-
-            {/* Tags */}
-            <View style={styles.tagsContainer}>
-              {book.genre.map((tag, index) => (
-                <Text key={index} style={styles.tag}>{tag}</Text>
-              ))}
-            </View>
-
-            {book.currentOwner && (
-              <TouchableOpacity style={styles.ownerContainer} onPress={handleOwnerClick}>
-                <Text style={styles.ownerContainerText}>Publicado por {book.currentOwner}</Text>
-              </TouchableOpacity>
+            {!!book.description && (
+              <>
+                <Text style={styles.sectionTitle} accessibilityRole="header">Descrição</Text>
+                <Text style={styles.description}>{book.description}</Text>
+              </>
             )}
 
-            {/* IconAndTextButton (Add to cart) */}
-            {book.currentOwner === getCurrentUser().displayName ? (<></>) :
-              hasTransactionType ? (
-                <>
-                  <TouchableOpacity
-                    style={styles.addToCartButton}
-                    onPress={onContactButton}
-                  >
-                    {loading ? (<ActivityIndicator size="large" color="white" />) : (
-                      <>
-                        <Ionicons name="chatbox-ellipses-outline" size={24} color="white" />
-                        <Text style={styles.addToCartText}>Contactar vendedor</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                  <View style={{ paddingVertical: 5 }}></View>
-                  <TouchableOpacity
-                    style={styles.addToCartButton}
-                    onPress={onActionButton}
-                  >
-                    <Ionicons name="add" size={24} color="white" />
-                    <Text style={styles.addToCartText}>
-                      {book.transactionType === TransactionType.SALE ? 'Adicionar ao carrinho' :
-                        book.transactionType === TransactionType.RENTAL ? 'Alugar' :
-                          'Trocar'
-                      }
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <TouchableOpacity
-                  style={styles.addToCartButton}
-                  onPress={onActionButton}
-                >
-                  <Text style={styles.addToCartText}>Selecionar livro</Text>
-                </TouchableOpacity>
-              )}
-          </View>
+            {book.currentOwner && (
+              <Pressable
+                style={({ pressed }) => [styles.ownerRow, pressed && styles.pressed]}
+                onPress={handleOwnerClick}
+                accessibilityRole="button"
+                accessibilityLabel={`Publicado por ${book.currentOwner}`}
+                accessibilityHint="Abre o perfil"
+              >
+                <Ionicons name="person-circle-outline" size={24} color={colors.textSecondary} />
+                <Text style={styles.ownerText}>Publicado por <Text style={styles.ownerName}>{book.currentOwner}</Text></Text>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </Pressable>
+            )}
+          </ScrollView>
+
+          {isOwnBook ? (
+            <Footer>
+              <Text style={styles.ownBookText}>Este livro foi publicado por si.</Text>
+            </Footer>
+          ) : hasTransactionType ? (
+            // Stacked, main action first: side by side, the longer labels wrap on narrow phones.
+            <Footer style={styles.stackedFooter}>
+              <Button
+                title={getActionLabel(book.transactionType)}
+                icon={getActionIcon(book.transactionType)}
+                onPress={onActionButton}
+              />
+              <Button
+                variant="secondary"
+                title="Contactar quem publicou"
+                icon="chatbox-ellipses-outline"
+                onPress={onContactButton}
+                loading={contacting}
+              />
+            </Footer>
+          ) : (
+            <Footer>
+              <Button title="Selecionar livro" icon="checkmark" onPress={onActionButton} style={styles.footerButton} />
+            </Footer>
+          )}
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  centeredView: {
+  safeArea: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.primary,
   },
-  modalView: {
-    backgroundColor: 'white',
-    padding: 20,
-    //borderRadius: 10,
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    padding: spacing.lg,
+  },
+  bookImage: {
     width: '100%',
     height: '100%',
-    alignItems: 'center',
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
   },
-  closeButton: {
+  placeholderCover: {
+    alignSelf: 'center',
+  },
+  expandIcon: {
     position: 'absolute',
-    top: 10,
-    left: 10,
-  },
-  photosContainer: {
-    width: '100%',
-    height: 350,
-    marginTop: 20,
+    top: spacing.sm,
+    right: spacing.sm,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: radius.pill,
   },
   pagination: {
-    position: 'absolute',
-    bottom: 25,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
+    marginTop: spacing.sm,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     margin: 3,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: colors.tag,
   },
   activeDot: {
-    backgroundColor: '#007aff',
-  },
-  bookImage: {
-    width: '100%', // Make the image take up full width
-    height: 300,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  bookDetails: {
-    width: '100%',
+    backgroundColor: colors.primary,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginTop: spacing.lg,
   },
   title: {
+    ...typography.title,
     flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: colors.text,
+    marginRight: spacing.md,
   },
   price: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    ...typography.heading,
+    color: colors.text,
   },
   authorYear: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  descriptionContainer: {
-    maxHeight: 100,
-    marginBottom: 10,
-  },
-  description: {
-    marginBottom: 10,
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 10,
+    marginTop: spacing.md,
   },
   tag: {
-    backgroundColor: '#DADADA',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 5,
-    marginBottom: 5,
-    borderRadius: 8,
+    ...typography.caption,
+    backgroundColor: colors.tag,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    marginRight: spacing.xs,
+    marginBottom: spacing.xs,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
   },
-  ownerContainer: {
-    paddingBottom: 20
+  sectionTitle: {
+    ...typography.label,
+    color: colors.text,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xs,
   },
-  ownerContainerText: {
-    color: 'grey',
-    fontStyle: 'italic'
+  description: {
+    ...typography.body,
+    color: colors.text,
+    lineHeight: 22,
   },
-  addToCartButton: {
+  ownerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#8C756A',
-    padding: 10,
-    borderRadius: 5,
+    minHeight: 48,
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
   },
-  addToCartText: {
-    color: 'white',
-    marginLeft: 5,
-    fontSize: 16,
+  pressed: {
+    opacity: 0.7,
+  },
+  ownerText: {
+    ...typography.body,
+    flex: 1,
+    color: colors.textSecondary,
+    marginLeft: spacing.sm,
+  },
+  ownerName: {
     fontWeight: 'bold',
+    color: colors.text,
   },
-  expandIcon: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
-    padding: 5,
+  ownBookText: {
+    ...typography.body,
+    flex: 1,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: spacing.md,
+  },
+  footerButton: {
+    flex: 1,
+  },
+  stackedFooter: {
+    flexDirection: 'column',
+    gap: spacing.sm,
   },
 });
 

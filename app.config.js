@@ -5,15 +5,19 @@ export default {
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
+          "photosPermission": "O $(PRODUCT_NAME) acede às suas fotos para poder adicionar imagens dos livros que publica ou troca.",
+          "cameraPermission": "O $(PRODUCT_NAME) usa a câmara para tirar fotos dos seus livros.",
+          // Only photos are picked, so no microphone access is needed.
+          "microphonePermission": false
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
+          "cameraPermission": "O $(PRODUCT_NAME) usa a câmara para ler o código de barras (ISBN) dos livros e tirar fotos.",
+          // Barcode scanning records no audio; asking for the microphone would be an unused permission.
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       "@react-native-community/datetimepicker",

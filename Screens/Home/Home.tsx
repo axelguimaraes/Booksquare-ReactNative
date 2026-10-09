@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
 import Tabs from '../../Components/MainTabs';
+import { colors } from '../../Components/ui/theme';
 
 const Home = ({ navigation }) => {
   return (
@@ -17,7 +18,7 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,

@@ -1,148 +1,101 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  FlatList,
-  StyleSheet,
-} from "react-native";
+import React, { useCallback, useState } from "react";
+import { View, Text, FlatList, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import TopBar from "../../Components/TopBar";
 import BottomBar from "../../Components/BottomBar";
-import { Ionicons } from "@expo/vector-icons";
-import { getCurrentUser, logout } from "../../Services/AuthService";
-import { User } from "../../Models/User";
-import { getUserById } from "../../Services/UsersService";
-import { Transaction } from "../../Models/Transaction";
-import { getAllUserTransactions } from "../../Services/TransactionsService";
 import TransactionCard from "../../Components/TransactionCard";
+import { getCurrentUser, logout } from "../../Services/AuthService";
+import { getAllUserTransactions } from "../../Services/TransactionsService";
+import { AuthUser } from "../../Models/User";
+import { Transaction } from "../../Models/Transaction";
+import Avatar from "../../Components/ui/Avatar";
+import Button from "../../Components/ui/Button";
+import { EmptyState } from "../../Components/ui/StateViews";
+import { colors, radius, spacing, typography } from "../../Components/ui/theme";
 
 const UserProfileScreen = ({ navigation }) => {
-  const [currentUser, setCurrentUser] = useState<User>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(() => getCurrentUser());
+  const [transactions, setTransactions] = useState<Transaction[] | null>(null);
 
-  const user = getCurrentUser();
-  const isAnonymous = getCurrentUser().isAnonymous ? true : false;
-
-  useEffect(() => {
-    if (!isAnonymous && user) {
-      setLoading(true);
-      getUserById(user.uid)
-        .then((res: User) => setCurrentUser(res))
-        .catch(console.error);
-
-      const fetchTransactions = async () => {
-        try {
-          const fetchedTransactions: Transaction[] =
-            await getAllUserTransactions(user.uid);
-          setTransactions(fetchedTransactions);
-          setLoading(false); // Move setLoading here to ensure it's called after transactions are fetched
-        } catch (error) {
-          console.error("Error fetching transactions:", error);
-          setLoading(false); // Make sure to set loading to false even in case of error
-        }
-      };
-      fetchTransactions();
-    }
-  }, [user]); // Only depend on 'user' to prevent infinite loops
-
-  const handleLogout = () => {
-    logout().then(() => {
-      alert("A sua sessão foi terminada");
-    });
-  };
-
-  const renderListItem = ({ item }) => (
-    <TransactionCard
-      id={item.id}
-      timestamp={item.timestamp}
-      book={item.book}
-      idSender={item.idSender}
-      idReceiver={item.idReceiver}
-      transactionType={item.transactionType}
-    />
+  // Re-read on focus so changes made on the edit screen show up right away.
+  useFocusEffect(
+    useCallback(() => {
+      const current = getCurrentUser();
+      setUser(current ? { ...current } : null);
+      if (current && !current.isAnonymous) {
+        getAllUserTransactions(current.uid)
+          .then((list) => setTransactions([...list].sort((a, b) => b.timestamp - a.timestamp)))
+          .catch((error) => {
+            console.error("Error fetching transactions:", error);
+            setTransactions([]);
+          });
+      }
+    }, [])
   );
 
-  const editProfileButton = () => {
-    navigation.navigate("EditProfileScreen");
+  const handleLogout = () => {
+    Alert.alert("Terminar sessão?", "Terá de voltar a iniciar sessão para usar a sua conta.", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Terminar sessão", style: "destructive", onPress: () => logout() },
+    ]);
   };
+
+  if (!user || user.isAnonymous) {
+    return (
+      <View style={styles.container}>
+        <TopBar navigation={navigation} />
+        <EmptyState
+          icon="person-circle-outline"
+          title="Utilizador convidado"
+          message="Inicie sessão ou crie uma conta para beneficiar de todas as funcionalidades."
+          action={{ label: "Iniciar sessão ou criar conta", onPress: () => logout() }}
+        />
+        <BottomBar navigation={navigation} />
+      </View>
+    );
+  }
+
+  const header = (
+    <>
+      <Text style={styles.screenTitle} accessibilityRole="header">Perfil</Text>
+      <View style={styles.profileContainer}>
+        <Avatar uri={user.photoURL} size={88} />
+        <View style={styles.profileInfo}>
+          <Text style={styles.name}>{user.displayName}</Text>
+          <Text style={styles.email}>{user.email}</Text>
+        </View>
+      </View>
+      <Button
+        variant="secondary"
+        title="Editar perfil"
+        icon="create-outline"
+        onPress={() => navigation.navigate("EditProfileScreen")}
+        style={styles.editButton}
+      />
+      <Text style={styles.sectionTitle} accessibilityRole="header">Histórico de transações</Text>
+    </>
+  );
 
   return (
     <View style={styles.container}>
-      {/* TopBar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color="grey" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Perfil</Text>
-        {user && !user.isAnonymous ? (
-          <TouchableOpacity onPress={() => editProfileButton()}>
-            <Ionicons name="pencil" size={30} color="grey" />
-          </TouchableOpacity>
-        ) : (
-          <View></View>
-        )}
-      </View>
-
-      <View style={styles.containerInside}>
-        {isAnonymous ? (
-          <View style={styles.anonymousContainer}>
-            <Text style={styles.anonymousText}>Utilizador convidado</Text>
-            <Text style={{ fontSize: 20, textAlign: "center", color: "grey" }}>
-              Inicie sessão com uma conta para benificiar de todas as
-              funcionalidades
-            </Text>
-            {/* Add any additional content for anonymous user */}
-          </View>
-        ) : (
-          <>
-            {/* Profile */}
-            <View style={styles.profileContainer}>
-              {user && user.photoURL ? (
-                <Image
-                  source={{ uri: user.photoURL }}
-                  style={styles.profilePhoto}
-                />
-              ) : (
-                <View style={styles.profilePhoto}>
-                  <Ionicons
-                    name="person-circle-outline"
-                    size={100}
-                    color="#ccc"
-                  />
-                </View>
-              )}
-              <View style={styles.profileInfo}>
-                <Text style={styles.name}>{user.displayName}</Text>
-                <Text style={styles.email}>{user.email}</Text>
-              </View>
-            </View>
-
-            {/* Lazy List */}
-            <View style={styles.lazyListContainer}>
-              <Text style={styles.lazyListTitle}>Histórico de transações</Text>
-              {transactions.length !== 0 ? (
-                <FlatList
-                  data={transactions}
-                  renderItem={renderListItem}
-                  keyExtractor={(item, index) => index.toString()}
-                />
-              ) : (
-                <View style={styles.containerEmpty}>
-                  <Text style={styles.containerEmptyMessage}>Sem transações a apresentar.</Text>
-                </View>
-              )}
-            </View>
-          </>
-        )}
-
-        {/* Logout Button */}
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Terminar sessão</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Bottom Bar */}
+      <TopBar navigation={navigation} />
+      <FlatList
+        data={transactions ?? []}
+        renderItem={({ item }) => <TransactionCard {...item} />}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.content}
+        ListHeaderComponent={header}
+        ListEmptyComponent={
+          transactions === null ? (
+            <ActivityIndicator color={colors.primary} style={styles.listMessage} accessibilityLabel="A carregar transações" />
+          ) : (
+            <Text style={styles.listMessage}>Ainda não tem transações. Quando comprar, alugar ou trocar um livro, aparece aqui.</Text>
+          )
+        }
+        ListFooterComponent={
+          <Button variant="danger" title="Terminar sessão" icon="log-out-outline" onPress={handleLogout} style={styles.logoutButton} />
+        }
+      />
       <BottomBar navigation={navigation} />
     </View>
   );
@@ -151,101 +104,53 @@ const UserProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
-  containerInside: {
-    flex: 1,
-    padding: 10,
+  content: {
+    padding: spacing.lg,
   },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 10,
-  },
-  backButton: {
-    fontSize: 20,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  editButton: {
-    fontSize: 16,
-    color: "blue",
+  screenTitle: {
+    ...typography.title,
+    color: colors.text,
+    marginBottom: spacing.md,
   },
   profileContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-  },
-  profilePhoto: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginRight: 10,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
   },
   profileInfo: {
     flex: 1,
+    marginLeft: spacing.lg,
   },
   name: {
-    fontSize: 18,
-    fontWeight: "bold",
+    ...typography.heading,
+    color: colors.text,
   },
   email: {
-    fontSize: 16,
-    color: "gray",
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
-  lazyListContainer: {
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    marginTop: 10,
-    flex: 1,
+  editButton: {
+    marginTop: spacing.md,
   },
-  lazyListTitle: {
-    color: "black",
-    fontWeight: "bold",
-    fontSize: 16,
-    marginBottom: 10,
+  sectionTitle: {
+    ...typography.heading,
+    color: colors.text,
+    marginTop: spacing.xl,
+    marginBottom: spacing.md,
   },
-  listItem: {
-    padding: 10,
-    fontSize: 16,
+  listMessage: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+    paddingVertical: spacing.lg,
   },
   logoutButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#8C756A",
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 15,
-  },
-  logoutText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  anonymousContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  anonymousText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  containerEmpty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  containerEmptyMessage: {
-    textAlign: 'center',
-    color: 'grey',
-    fontSize: 18
+    marginTop: spacing.xl,
   },
 });
 

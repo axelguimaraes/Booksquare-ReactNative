@@ -17,6 +17,7 @@ export interface Traded {
 }
 
 export interface Book {
+  id?: string; // document ID, present on books read from the database
   isbn: number;
   title: string;
   description: string;

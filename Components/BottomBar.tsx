@@ -1,58 +1,57 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Pressable, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { NavigationProp } from '@react-navigation/native';
-import { getCurrentUser } from '../Services/AuthService';
-
+import { NavigationProp, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { requireAccount } from '../Utils/requireAccount';
+import { colors, spacing } from './ui/theme';
 
 interface BottomBarProps {
-  navigation: NavigationProp<any>; // Adjust the type according to your navigation stack
+  navigation: NavigationProp<any>;
 }
 
+type IconName = keyof typeof Ionicons.glyphMap;
+
+const tabs: { route: string, label: string, icon: IconName, activeIcon: IconName, needsAccount?: boolean }[] = [
+  { route: 'Home', label: 'Início', icon: 'home-outline', activeIcon: 'home' },
+  { route: 'Notifications', label: 'Notificações', icon: 'notifications-outline', activeIcon: 'notifications' },
+  { route: 'Sell', label: 'Vender', icon: 'add-circle-outline', activeIcon: 'add-circle', needsAccount: true },
+  { route: 'Messages', label: 'Mensagens', icon: 'mail-outline', activeIcon: 'mail', needsAccount: true },
+  { route: 'Profile', label: 'Perfil', icon: 'person-outline', activeIcon: 'person' },
+];
+
 const BottomBar: React.FC<BottomBarProps> = ({ navigation }) => {
+  const currentRoute = useRoute().name;
+  const insets = useSafeAreaInsets();
 
-  const navigateToHomeScreen = () => {
-    navigation.navigate('Home', undefined, { pop: true });
+  const openTab = (tab: typeof tabs[number]) => {
+    if (tab.route === currentRoute) return;
+    if (tab.needsAccount && !requireAccount()) return;
+    // pop: go back to the tab's screen if it is already open instead of stacking another copy.
+    navigation.navigate(tab.route, undefined, { pop: true });
   };
-  const navigateToNotificationsScreen = () => {
-    navigation.navigate('Notifications', undefined, { pop: true });
-  };
-  const navigateToSellScreen = () => {
-    if (getCurrentUser().isAnonymous) {
-      alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
-      return
-    }
-    navigation.navigate('Sell', undefined, { pop: true });
-  };
-  const navigateToMessagesScreen = () => {
-    if (getCurrentUser().isAnonymous) {
-      alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
-      return
-    }
-    navigation.navigate('Messages', undefined, { pop: true });
-  };
-  const navigateToProfileScreen = () => {
-    navigation.navigate('Profile', undefined, { pop: true });
-  };
-
 
   return (
-    <View style={styles.bottomBar}>
-      <TouchableOpacity style={styles.iconButton} onPress={navigateToHomeScreen}>
-        <Ionicons name="home-outline" size={24} color="black" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.iconButton} onPress={navigateToNotificationsScreen}>
-        <Ionicons name="notifications-outline" size={24} color="black" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.iconButton} onPress={navigateToSellScreen}>
-        <Ionicons name="add-circle-outline" size={24} color="black" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.iconButton} onPress={navigateToMessagesScreen}>
-        <Ionicons name="mail-outline" size={24} color="black" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.iconButton} onPress={navigateToProfileScreen}>
-        <Ionicons name="person-outline" size={24} color="black" />
-      </TouchableOpacity>
+    <View style={[styles.bottomBar, { paddingBottom: insets.bottom }]} accessibilityRole="tablist">
+      {tabs.map((tab) => {
+        const active = tab.route === currentRoute;
+        const color = active ? colors.primary : colors.textSecondary;
+        return (
+          <Pressable
+            key={tab.route}
+            style={({ pressed }) => [styles.tab, pressed && styles.pressed]}
+            onPress={() => openTab(tab)}
+            accessibilityRole="tab"
+            accessibilityLabel={tab.label}
+            accessibilityState={{ selected: active }}
+          >
+            <Ionicons name={active ? tab.activeIcon : tab.icon} size={24} color={color} />
+            <Text style={[styles.label, { color }, active && styles.activeLabel]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
+              {tab.label}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 };
@@ -60,18 +59,26 @@ const BottomBar: React.FC<BottomBarProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   bottomBar: {
     flexDirection: 'row',
-    backgroundColor: '#EFEFEF',
-    height: 56, // Android recommended height for bottom navigation bar
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopWidth: 1, // Add a border to separate from content
-    borderTopColor: '#DADADA',
+    backgroundColor: colors.surfaceAlt,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
-  iconButton: {
+  tab: {
+    flex: 1,
+    minHeight: 56,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    height: '100%',
+    paddingVertical: spacing.xs,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  label: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  activeLabel: {
+    fontWeight: 'bold',
   },
 });
 

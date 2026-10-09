@@ -19,11 +19,12 @@ export const populateBookFromJson = (json: any): Book => {
   return {
     isbn: parseInt(json.id, 10),
     title: json.volumeInfo.title,
-    description: json.volumeInfo.description,
+    description: json.volumeInfo.description ?? '',
     price: undefined,
     photos: photos,
-    year: new Date(json.volumeInfo.publishedDate).getFullYear(),
-    author: json.volumeInfo.authors.join(', '),
+    // publishedDate is "2004", "2004-03" or "2004-03-01"
+    year: Number.parseInt(json.volumeInfo.publishedDate ?? '', 10) || null,
+    author: (json.volumeInfo.authors ?? []).join(', '),
     genre: genres,
     transactionType: null,
     currentOwner: null,

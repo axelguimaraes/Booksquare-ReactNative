@@ -7,38 +7,65 @@ import { Chat } from '../../Models/Chat';
 import { getCurrentUser } from '../../Services/AuthService';
 import { getAllUserChats } from '../../Services/ChatService';
 import { useFocusEffect } from '@react-navigation/native';
+import { EmptyState, LoadingView } from '../../Components/ui/StateViews';
+import { colors, spacing, typography } from '../../Components/ui/theme';
+
+const lastMessageTime = (chat: Chat) => {
+  const last = chat.messageThread[chat.messageThread.length - 1];
+  return last ? new Date(last.timestamp).getTime() : 0;
+};
 
 const Messages = ({ navigation }) => {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<Chat[] | null>(null);
+  const [error, setError] = useState(false);
 
   const fetchMessages = async () => {
     try {
       const userChats = await getAllUserChats(getCurrentUser().uid);
-      setChats(userChats);
-    } catch (error) {
-      console.error('Error retrieving chats:', error);
+      // Most recent conversation first
+      setChats([...userChats].sort((a, b) => lastMessageTime(b) - lastMessageTime(a)));
+      setError(false);
+    } catch (e) {
+      console.error('Error retrieving chats:', e);
+      setError(true);
+      setChats((current) => current ?? []);
     }
   };
 
-  // Use the useFocusEffect hook to run the fetchMessages function when the screen comes into focus
+  // Refresh whenever the screen comes into focus, e.g. after replying in a chat
   useFocusEffect(
     React.useCallback(() => {
       fetchMessages();
-    }, []) // Empty dependency array means this effect only runs once when the component mounts
+    }, [])
   );
+
+  const renderContent = () => {
+    if (chats === null) {
+      return <LoadingView label="A carregar mensagens" />;
+    }
+    if (chats.length === 0) {
+      return error ? (
+        <EmptyState
+          icon="cloud-offline-outline"
+          title="Não foi possível carregar as mensagens"
+          action={{ label: 'Tentar novamente', onPress: fetchMessages }}
+        />
+      ) : (
+        <EmptyState
+          icon="chatbubbles-outline"
+          title="Sem mensagens"
+          message="Contacte quem publicou um livro a partir dos detalhes do livro."
+        />
+      );
+    }
+    return <MessagesList data={chats} navigation={navigation} currentUser={getCurrentUser()} onUpdate={fetchMessages} />;
+  };
 
   return (
     <View style={styles.container}>
       <TopBar navigation={navigation} />
-      <View style={styles.content}>
-        {chats.length !== 0 ? (
-          <MessagesList data={chats} navigation={navigation} currentUser={getCurrentUser()} onUpdate={fetchMessages}/>
-        ) : (
-          <View style={styles.containerEmpty}>
-            <Text style={styles.containerEmptyMessage}>Sem mensagens a apresentar.</Text>
-          </View>
-        )}
-      </View>
+      <Text style={styles.title} accessibilityRole="header">Mensagens</Text>
+      <View style={styles.content}>{renderContent()}</View>
       <BottomBar navigation={navigation} />
     </View>
   );
@@ -47,20 +74,17 @@ const Messages = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
+  },
+  title: {
+    ...typography.title,
+    color: colors.text,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   content: {
     flex: 1,
-  },
-  containerEmpty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  containerEmptyMessage: {
-    textAlign: 'center',
-    color: 'grey',
-    fontSize: 18
   },
 });
 

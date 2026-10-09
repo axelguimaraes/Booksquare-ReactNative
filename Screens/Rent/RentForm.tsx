@@ -1,123 +1,143 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import TopBar from '../../Components/TopBar';
-import BottomBar from '../../Components/BottomBar';
-import { useNavigation } from '@react-navigation/native';
-import DatePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { rentBook } from '../../Services/BooksService';
 import { getCurrentUser } from '../../Services/AuthService';
 import { createTransaction } from '../../Services/TransactionsService';
-import { Transaction } from '../../Models/Transaction';
-import uuid from 'react-native-uuid'
 import { getUserIdByDisplayName } from '../../Services/UsersService';
+import { Transaction } from '../../Models/Transaction';
+import { Book } from '../../Models/Book';
+import { formatDate, formatPrice } from '../../Utils/format';
+import uuid from 'react-native-uuid'
+import BookSummary from '../../Components/BookSummary';
+import Button from '../../Components/ui/Button';
+import ScreenHeader from '../../Components/ui/ScreenHeader';
+import { Footer } from '../../Components/ui/Layout';
+import { colors, radius, spacing, typography } from '../../Components/ui/theme';
 
-const RentForm = ({ route }) => {
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const addDays = (date: Date, days: number) => new Date(startOfDay(date).getTime() + days * DAY_MS);
+
+const rentErrorMessage = (error: any) => {
+    switch (error?.message) {
+        case 'Book is already rented':
+            return 'Este livro acabou de ser alugado por outra pessoa.';
+        case 'Book is already traded':
+            return 'Este livro já não está disponível.';
+        case 'Book not found':
+            return 'Este livro já não está disponível.';
+        default:
+            return 'Ocorreu um erro ao alugar o livro. Tente novamente.';
+    }
+};
+
+const RentForm = ({ route, navigation }) => {
+    const { book }: { book: Book } = route.params
+    const today = startOfDay(new Date());
+    const minimumDate = addDays(today, 1);
+    const [selectedDate, setSelectedDate] = useState(() => addDays(today, 7));
     const [loading, setLoading] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const { book } = route.params
-    const navigation = useNavigation()
-    const [showDatePicker, setShowDatePicker] = useState(false);
 
-    const handleDiscardBook = () => {
-        navigation.goBack()
+    const days = Math.max(1, Math.round((startOfDay(selectedDate).getTime() - today.getTime()) / DAY_MS));
+    const total = book.rentalPricePerDay != null ? days * book.rentalPricePerDay : null;
+
+    const openAndroidDatePicker = () => {
+        DateTimePickerAndroid.open({
+            value: selectedDate,
+            mode: 'date',
+            minimumDate,
+            onValueChange: (_event, date) => setSelectedDate(date),
+        });
     };
 
-    const handleConfirmButton = () => {
-        rentBook({
-            bookId: book.id,
-            userId: getCurrentUser().uid,
-            date: selectedDate
-        })
-            .then(async () => {
-                const transaction: Transaction = {
-                    id: uuid.v4().toString(),
-                    timestamp: Date.now(),
-                    book: book,
-                    idSender: await getUserIdByDisplayName(book.currentOwner),
-                    idReceiver: getCurrentUser().uid,
-                    transactionType: book.transactionType
-                }
-                await createTransaction(transaction).catch((error) => console.error('Error creating transaction',error))
-                alert('Livro alugado com sucesso!');
-                navigation.goBack()
-            })
-    };
-
-
-    const toggleDatePicker = () => {
-        setShowDatePicker(!showDatePicker);
+    const handleConfirmButton = async () => {
+        setLoading(true);
+        try {
+            await rentBook({
+                bookId: book.id,
+                userId: getCurrentUser().uid,
+                date: selectedDate
+            });
+            const transaction: Transaction = {
+                id: uuid.v4().toString(),
+                timestamp: Date.now(),
+                book: book,
+                idSender: await getUserIdByDisplayName(book.currentOwner),
+                idReceiver: getCurrentUser().uid,
+                transactionType: book.transactionType
+            }
+            await createTransaction(transaction).catch((error) => console.error('Error creating transaction', error))
+            Alert.alert('Livro alugado', `Alugou "${book.title}" até ${formatDate(selectedDate)}.`);
+            navigation.goBack()
+        } catch (error) {
+            console.error('Error renting book:', error);
+            Alert.alert('Não foi possível alugar', rentErrorMessage(error));
+            setLoading(false);
+        }
     };
 
     return (
         <View style={styles.container}>
-            <TopBar navigation={navigation} />
-            <ScrollView contentContainerStyle={styles.bookDetailsContainer}>
-                <View style={styles.bookDetails}>
-                    <Text style={styles.headerTitle}>Alugar Livro</Text>
+            <ScreenHeader title="Alugar livro" onBack={() => navigation.goBack()} />
+            <ScrollView contentContainerStyle={styles.content}>
+                <BookSummary book={book} />
 
-                    <Text style={styles.title}>ISBN</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.isbn}</Text>
-                    </View>
-
-                    <Text style={styles.title}>Título</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.title}</Text>
-                    </View>
-
-                    <Text style={styles.title}>Ano</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.year}</Text>
-                    </View>
-
-                    <Text style={styles.title}>Autor(es)</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.author}</Text>
-                    </View>
-
-                    <Text style={styles.title}>Categorias</Text>
-                    <View style={styles.valueBox}>
-                        <Text style={styles.valueBoxContent}>{book.genre.join(', ')}</Text>
-                    </View>
-
-                    <Text style={styles.title}>Alugar até: <Text style={{fontStyle: 'italic', color: 'grey'}}>(Clique para selecionar)</Text></Text>
-                    <TouchableOpacity onPress={toggleDatePicker}>
-                        <View style={styles.valueBox}>
-                            <Text style={styles.valueBoxContent}>{selectedDate ? selectedDate.toLocaleDateString() : 'Selecione uma data'}</Text>
-                        </View>
-                    </TouchableOpacity>
-
-                    {showDatePicker && (
-                        <DatePicker
+                <Text style={styles.sectionTitle} accessibilityRole="header">Data de devolução</Text>
+                {Platform.OS === 'ios' ? (
+                    <View style={styles.dateRow}>
+                        <Text style={styles.dateLabel}>Alugar até</Text>
+                        <DateTimePicker
                             value={selectedDate}
-                            onChange={(_event, date) => {
-                                setSelectedDate(date);
-                                toggleDatePicker(); // Close date picker after selecting a date
-                            }}
-                            locale="pt-BR" // Set the locale to Portuguese (Brazil)
+                            mode="date"
+                            display="compact"
+                            minimumDate={minimumDate}
+                            locale="pt-PT"
+                            accentColor={colors.primary}
+                            themeVariant="light"
+                            onValueChange={(_event, date) => setSelectedDate(date)}
+                            accessibilityLabel="Data de devolução"
                         />
+                    </View>
+                ) : (
+                    <Pressable
+                        style={({ pressed }) => [styles.dateField, pressed && styles.pressed]}
+                        onPress={openAndroidDatePicker}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Data de devolução, ${formatDate(selectedDate)}`}
+                        accessibilityHint="Abre o calendário"
+                    >
+                        <Ionicons name="calendar-outline" size={22} color={colors.primary} />
+                        <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
+                        <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+                    </Pressable>
+                )}
+
+                <View style={styles.summary} accessible accessibilityLabel={`${days} ${days === 1 ? 'dia' : 'dias'}${total != null ? `, total ${formatPrice(total)}` : ''}`}>
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Duração</Text>
+                        <Text style={styles.summaryValue}>{days} {days === 1 ? 'dia' : 'dias'}</Text>
+                    </View>
+                    {book.rentalPricePerDay != null && (
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.summaryLabel}>Preço por dia</Text>
+                            <Text style={styles.summaryValue}>{formatPrice(book.rentalPricePerDay)}</Text>
+                        </View>
+                    )}
+                    {total != null && (
+                        <View style={[styles.summaryRow, styles.totalRow]}>
+                            <Text style={styles.totalLabel}>Total</Text>
+                            <Text style={styles.totalValue}>{formatPrice(total)}</Text>
+                        </View>
                     )}
                 </View>
-                <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
-                    <View style={styles.buttonsContainer}>
-                        <TouchableOpacity style={styles.discardButton} onPress={handleDiscardBook}>
-                            <Ionicons name="trash-outline" size={19} color="black" />
-                            <Text style={styles.discardButtonText}>Descartar Livro</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.confirmBookButton} onPress={handleConfirmButton}>
-                            {loading ? <ActivityIndicator size="small" color="white" />
-                                :
-                                <Text style={styles.confirmButtonText}>Confirmar</Text>
-                            }
-                        </TouchableOpacity>
-                    </View>
-                </KeyboardAvoidingView>
             </ScrollView>
-            <BottomBar navigation={navigation} />
+            <Footer>
+                <Button variant="secondary" title="Cancelar" onPress={() => navigation.goBack()} style={styles.footerButton} disabled={loading} />
+                <Button title="Confirmar aluguer" onPress={handleConfirmButton} loading={loading} style={styles.footerButton} />
+            </Footer>
         </View>
     );
 };
@@ -125,117 +145,80 @@ const RentForm = ({ route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: colors.background,
     },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'space-between',
+    content: {
+        padding: spacing.lg,
     },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10
+    sectionTitle: {
+        ...typography.heading,
+        color: colors.text,
+        marginTop: spacing.xl,
+        marginBottom: spacing.sm,
     },
-    headerExplanation: {
-        fontSize: 14,
-        color: '#666',
-        paddingBottom: 20
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    inputContainer: {
-        padding: 20
-    },
-    valueBox: {
-        borderWidth: 1,
-        borderRadius: 5,
-        alignItems: "flex-start",
-        justifyContent: "center",
-        marginBottom: 10,
-        borderColor: '#ccc',
-    },
-    valueBoxContent: {
-        marginLeft: 10,
-        lineHeight: 30,
-    },
-    priceInput: {
-        marginTop: 10
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    input: {
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        marginBottom: 10,
-    },
-    confirmButton: {
-        backgroundColor: '#8C756A',
-        paddingVertical: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-        marginBottom: 20,
-        marginHorizontal: 20,
-    },
-    confirmButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    bookDetailsContainer: {
-        flexGrow: 1,
-        justifyContent: 'space-between',
-    },
-    bookDetails: {
-        padding: 20
-    },
-    transactionTypeContainer: {
+    dateRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
-    },
-    buttonsContainer: {
-        flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        position: 'absolute',
-        bottom: 0,
-        width: '100%',
+        minHeight: 48,
     },
-    discardButton: {
+    dateLabel: {
+        ...typography.body,
+        color: colors.text,
+    },
+    dateField: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        minHeight: 48,
+        paddingHorizontal: spacing.md,
         borderWidth: 1,
-        borderColor: 'black',
-        borderRadius: 5,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
+        borderColor: colors.inputBorder,
+        borderRadius: radius.sm,
+    },
+    pressed: {
+        backgroundColor: colors.surface,
+    },
+    dateText: {
+        ...typography.body,
         flex: 1,
-        marginRight: 10,
-        alignItems: 'center',
+        color: colors.text,
+        marginLeft: spacing.sm,
+    },
+    summary: {
+        marginTop: spacing.xl,
+        padding: spacing.lg,
+        borderRadius: radius.sm,
+        backgroundColor: colors.surface,
+    },
+    summaryRow: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: spacing.xs,
     },
-    confirmBookButton: {
-        backgroundColor: '#8C756A',
-        borderRadius: 5,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
+    summaryLabel: {
+        ...typography.body,
+        color: colors.textSecondary,
+    },
+    summaryValue: {
+        ...typography.body,
+        color: colors.text,
+    },
+    totalRow: {
+        marginTop: spacing.sm,
+        paddingTop: spacing.sm,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: colors.border,
+    },
+    totalLabel: {
+        ...typography.heading,
+        color: colors.text,
+    },
+    totalValue: {
+        ...typography.heading,
+        color: colors.text,
+    },
+    footerButton: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    discardButtonText: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginLeft: 5,
     },
 });
 
