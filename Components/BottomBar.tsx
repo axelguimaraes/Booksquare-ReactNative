@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp } from '@react-navigation/native';
-import { FIREBASE_AUTH } from '../config/firebase';
+import { getCurrentUser } from '../Services/AuthService';
 
 
 interface BottomBarProps {
@@ -12,27 +12,27 @@ interface BottomBarProps {
 const BottomBar: React.FC<BottomBarProps> = ({ navigation }) => {
 
   const navigateToHomeScreen = () => {
-    navigation.navigate('Home');
+    navigation.navigate('Home', undefined, { pop: true });
   };
   const navigateToNotificationsScreen = () => {
-    navigation.navigate('Notifications');
+    navigation.navigate('Notifications', undefined, { pop: true });
   };
   const navigateToSellScreen = () => {
-    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+    if (getCurrentUser().isAnonymous) {
       alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
       return
     }
-    navigation.navigate('Sell');
+    navigation.navigate('Sell', undefined, { pop: true });
   };
   const navigateToMessagesScreen = () => {
-    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+    if (getCurrentUser().isAnonymous) {
       alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
       return
     }
-    navigation.navigate('Messages');
+    navigation.navigate('Messages', undefined, { pop: true });
   };
   const navigateToProfileScreen = () => {
-    navigation.navigate('Profile');
+    navigation.navigate('Profile', undefined, { pop: true });
   };
 
 

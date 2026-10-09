@@ -9,13 +9,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { FIREBASE_AUTH } from "../../config/firebase";
+import { getCurrentUser, updateCurrentUserEmail, updateCurrentUserProfile } from "../../Services/AuthService";
 import { updateUserById } from "../../Services/UsersService";
-import { updateEmail, updateProfile } from "firebase/auth";
 import { ImagePickerResult } from "expo-image-picker";
 import * as ImagePicker from "expo-image-picker";
 import IconBadge from "react-native-icon-badge";
-import uploadMedia from "../../Utils/uploadMedia";
+import { uploadMedia } from "../../Services/StorageService";
 
 interface ProfileFields {
   displayName?: string | null;
@@ -32,11 +31,11 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleNameChange = (text) => setDisplayName(text);
   const handleEmailChange = (text) => setEmail(text);
 
-  const currentUser = FIREBASE_AUTH.currentUser;
+  const currentUser = getCurrentUser();
 
   const handlePhotosButton = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       aspect: [1, 1],
       quality: 1,
       allowsEditing: true,
@@ -62,7 +61,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       const infoToUpdate: ProfileFields = {};
 
       if (email !== null && email !== undefined) {
-        await updateEmail(currentUser, email).catch((error) =>
+        await updateCurrentUserEmail(email).catch((error) =>
           console.error(error)
         );
       }
@@ -89,7 +88,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         infoToUpdate.photoURL = downloadURLs[0];
       }
 
-      await updateProfile(currentUser, infoToUpdate)
+      await updateCurrentUserProfile(infoToUpdate)
         .then(() => {
           updateUserById(currentUser.uid as string, infoToUpdate);
           alert("Perfil atualizado com sucesso!");

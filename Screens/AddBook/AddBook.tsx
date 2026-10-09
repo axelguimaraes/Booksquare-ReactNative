@@ -5,16 +5,17 @@ import {
 } from 'react-native';
 import TopBar from '../../Components/TopBar';
 import BottomBar from '../../Components/BottomBar';
-import { addBook, getBookInfoByISBN, populateBookFromJson } from '../../Services/BooksService';
+import { addBook } from '../../Services/BooksService';
+import { getBookInfoByISBN, populateBookFromJson } from '../../Services/BookLookupService';
 import BookDetailsDialog from '../../Components/BookDetailsDialog';
 import { Book, TransactionType } from '../../Models/Book';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { Ionicons } from '@expo/vector-icons';
-import { FIREBASE_AUTH } from '../../config/firebase';
+import { getCurrentUser } from '../../Services/AuthService';
 import BarcodeScanner from '../../Utils/useBarcodeScanner';
 import { ImagePickerResult } from 'expo-image-picker';
 import * as ImagePicker from 'expo-image-picker';
-import uploadMedia from '../../Utils/uploadMedia';
+import { uploadMedia } from '../../Services/StorageService';
 
 const AddBook = ({ navigation }) => {
   const [isbn, setIsbn] = useState('');
@@ -146,7 +147,7 @@ const AddBook = ({ navigation }) => {
       transactionType: transactionType,
       price: transactionType === TransactionType.SALE ? Number.parseFloat(price) : null,
       rentalPricePerDay: transactionType === TransactionType.RENTAL ? Number.parseFloat(rentalPricePerDay) : null,
-      currentOwner: FIREBASE_AUTH.currentUser.displayName,
+      currentOwner: getCurrentUser().displayName,
       isVisible: true,
     };
 
@@ -195,7 +196,7 @@ const AddBook = ({ navigation }) => {
 
   const handlePhotosButton = async () => {
     let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ['images', 'videos'],
       aspect: [4, 3],
       quality: 1,
       allowsMultipleSelection: true,

@@ -4,7 +4,7 @@ import { StyleSheet, TouchableOpacity, View, Text, ActivityIndicator } from "rea
 import { Ionicons } from "@expo/vector-icons";
 import { getCartItems, purchaseItems } from "../../Services/ShoppingCartService";
 import { ShoppingCartItem } from "../../Models/ShoppingCart";
-import { FIREBASE_AUTH } from "../../config/firebase";
+import { getCurrentUser } from "../../Services/AuthService";
 import { Book } from "../../Models/Book";
 import { getBookByIsbn } from "../../Services/BooksService";
 import { Transaction } from "../../Models/Transaction";
@@ -20,7 +20,7 @@ const CheckoutScreen = () => {
   const [books, setBooks] = useState<Book[]>(null)
 
   useEffect(() => {
-    getCartItems(FIREBASE_AUTH.currentUser.uid).then((items: ShoppingCartItem[]) => {
+    getCartItems(getCurrentUser().uid).then((items: ShoppingCartItem[]) => {
       if (items !== null || items.length > 0) {
         setCartItems(items);
       }
@@ -58,7 +58,7 @@ const CheckoutScreen = () => {
           timestamp: Date.now(),
           book: book,
           idSender: await getUserIdByDisplayName(book.currentOwner),
-          idReceiver: FIREBASE_AUTH.currentUser.uid,
+          idReceiver: getCurrentUser().uid,
           transactionType: book.transactionType
         };
   

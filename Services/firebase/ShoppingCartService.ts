@@ -1,8 +1,10 @@
-import { collection, addDoc, getDocs, query, where, updateDoc, onSnapshot, runTransaction } from 'firebase/firestore';
-import { FIREBASE_AUTH, FIREBASE_DB } from '../config/firebase';
-import { ShoppingCart, ShoppingCartItem } from '../Models/ShoppingCart';
-import { Book } from '../Models/Book';
+import { collection, addDoc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestoreDb } from '../../config/firebase';
+import { ShoppingCartItem } from '../../Models/ShoppingCart';
+import { Book } from '../../Models/Book';
 import uuid from 'react-native-uuid';
+import { getCurrentUser } from '../AuthService';
+import { purchaseBook } from '../BooksService';
 
 export const addToCart = async (userId: string, book: Book): Promise<void> => {
     console.log('Adding to cart');
@@ -14,7 +16,7 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
             isbn: book.isbn
         };
 
-        const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
+        const cartCollection = collection(getFirestoreDb(), 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
         const querySnapshot = await getDocs(cartQuery);
 
@@ -51,7 +53,7 @@ export const addToCart = async (userId: string, book: Book): Promise<void> => {
 export const removeFromCart = async (userId: string, productId: string): Promise<void> => {
     console.log('Removing from cart')
     try {
-        const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
+        const cartCollection = collection(getFirestoreDb(), 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
         const querySnapshot = await getDocs(cartQuery);
 
@@ -70,7 +72,7 @@ export const removeFromCart = async (userId: string, productId: string): Promise
 export const clearCart = async (userId: string): Promise<void> => {
     console.log('Clearing cart')
     try {
-        const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
+        const cartCollection = collection(getFirestoreDb(), 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
         const querySnapshot = await getDocs(cartQuery);
 
@@ -87,7 +89,7 @@ export const clearCart = async (userId: string): Promise<void> => {
 export const getCartItems = async (userId: string): Promise<ShoppingCartItem[]> => {
     console.log('Getting cart items')
     try {
-        const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
+        const cartCollection = collection(getFirestoreDb(), 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
         const querySnapshot = await getDocs(cartQuery);
 
@@ -106,7 +108,7 @@ export const getCartItems = async (userId: string): Promise<ShoppingCartItem[]> 
 export const getCartItemCount = async (userId: string): Promise<number> => {
     console.log('Getting cart item count')
     try {
-        const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
+        const cartCollection = collection(getFirestoreDb(), 'shoppingCarts');
         const cartQuery = query(cartCollection, where('userId', '==', userId));
         const querySnapshot = await getDocs(cartQuery);
 
@@ -125,8 +127,8 @@ export const getCartItemCount = async (userId: string): Promise<number> => {
 
 export const listenForCartChanges = (updateCallback) => {
     console.log('Listening for cart changes')
-    const currentUser = FIREBASE_AUTH.currentUser
-    const cartCollection = collection(FIREBASE_DB, 'shoppingCarts');
+    const currentUser = getCurrentUser()
+    const cartCollection = collection(getFirestoreDb(), 'shoppingCarts');
     const cartQuery = query(cartCollection, where('userId', '==', currentUser.uid));
     
     // Set up real-time listener
@@ -143,33 +145,14 @@ export const listenForCartChanges = (updateCallback) => {
   export const purchaseItems = async (cartItems: ShoppingCartItem[]) => {
     console.log('Purchasing items...');
 
-    const db = FIREBASE_DB;
-    const booksCollection = collection(db, 'books');
-    const userId = FIREBASE_AUTH.currentUser.uid
-    const currentOwner = FIREBASE_AUTH.currentUser.displayName
+    const userId = getCurrentUser().uid
+    const currentOwner = getCurrentUser().displayName
 
     try {
-        await Promise.all(cartItems.map(async (cartItem) => {
-            const { isbn } = cartItem;
-            const bookQuerySnapshot = await getDocs(query(booksCollection, where('isbn', '==', isbn)));
-            if (!bookQuerySnapshot.empty) {
-                const bookDoc = bookQuerySnapshot.docs[0];
-                await runTransaction(db, async (transaction) => {
-                    const bookRef = bookDoc.ref;
-                    const bookSnap = await transaction.get(bookRef);
-                    if (bookSnap.exists()) {
-                        const bookData: Book = bookSnap.data() as Book;
-                        if (bookData.isVisible && bookData.currentOwner !== userId) {
-                            transaction.update(bookRef, {
-                                isVisible: false,
-                                currentOwner: currentOwner,
-                            });
-                            await clearCart(userId)
-                        }
-                    }
-                });
-            }
-        }));
+        await Promise.all(cartItems.map((cartItem) =>
+            purchaseBook({ isbn: cartItem.isbn, buyerId: userId, buyerName: currentOwner })
+        ));
+        await clearCart(userId)
         console.log('Items purchased successfully.');
     } catch (error) {
         console.error('Error purchasing items:', error);

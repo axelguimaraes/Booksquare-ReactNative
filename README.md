@@ -35,18 +35,26 @@ Booksquare is a mobile application built with React Native that facilitates buyi
     npm install
     ```
 
-4. Start the Metro server:
+4. Start the Metro server, then press `i` (iOS simulator) or `a` (Android emulator) to open the app in Expo Go:
 
     ```bash
     npx expo start
     ```
 
-5. Run the app on a simulator or device:
+    To build and run a development build instead:
 
     ```bash
-    npx expo android   # For Android
-    npx expo ios       # For iOS
+    npx expo run:android   # For Android
+    npx expo run:ios       # For iOS
     ```
+
+## Configuration and mock data
+
+The app runs without any configuration: when the Firebase variables are missing, every feature uses local mock data (seeded from [DummyData/MockData.ts](DummyData/MockData.ts)) instead of Firebase. Sign in with `demo@booksquare.test` / `123456`, or create a new account.
+
+To use Firebase, or to choose per feature between mocks and real data, copy [.env.example](.env.example) to `.env.local` and fill it in. Each `EXPO_PUBLIC_MOCK_*` flag (auth, users, books, cart, chat, transactions, storage, book lookup) takes `true` or `false`. Restart with `npx expo start --clear` after changing it. The app logs which features are mocked at startup.
+
+Under the hood, each service in [Services/](Services/) picks between its Firebase implementation ([Services/firebase/](Services/firebase/)) and its mock ([Services/mock/](Services/mock/)) based on [config/dataSources.ts](config/dataSources.ts).
 
 ## Technologies Used
 

@@ -1,15 +1,13 @@
-import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, FieldValue } from "firebase/firestore";
-import { FIREBASE_DB } from "../config/firebase";
+import { collection, query, where, getDocs, onSnapshot, addDoc, updateDoc } from "firebase/firestore";
+import { getFirestoreDb } from "../../config/firebase";
 import uuid from 'react-native-uuid'
-import { updateUserById } from "./UsersService";
-import firebase from "firebase/compat";
-import { Chat, SingleMessage } from "../Models/Chat";
-import { User } from "../Models/User";
+import { addChatToUser, getUserById } from "../UsersService";
+import { Chat, SingleMessage } from "../../Models/Chat";
 
 export const getChat = async (userId: string, otherUserId: string): Promise<Chat | null> => {
   console.log('Getting chat')
   try {
-    const chatsRef = collection(FIREBASE_DB, 'chats');
+    const chatsRef = collection(getFirestoreDb(), 'chats');
 
     // Create a query to find the chat document for the given user pair
     const chatQuery = query(chatsRef, where('user1', 'in', [userId, otherUserId]), where('user2', 'in', [userId, otherUserId]));
@@ -36,21 +34,19 @@ export const getAllUserChats = async (userId: string): Promise<Chat[]> => {
   console.log('Getting all user chats')
   try {
     // Fetch the user document
-    const userQuery = query(collection(FIREBASE_DB, 'users'), where('userId', '==', userId));
-    const userSnapshot = await getDocs(userQuery);
+    const userData = await getUserById(userId);
 
-    if (userSnapshot.empty) {
+    if (!userData) {
       throw new Error('User not found');
     }
 
     // Extract the user's chatID array
-    const userData = userSnapshot.docs[0].data() as User;
     const chatIDs = userData.chatID || [];
 
     // Fetch all chats where chatId is in the user's chatID array
     const chats: Chat[] = [];
     for (const chatId of chatIDs) {
-      const chatQuery = query(collection(FIREBASE_DB, 'chats'), where('id', '==', chatId));
+      const chatQuery = query(collection(getFirestoreDb(), 'chats'), where('id', '==', chatId));
       const chatSnapshot = await getDocs(chatQuery);
 
       chatSnapshot.forEach(doc => {
@@ -69,7 +65,7 @@ export const getAllUserChats = async (userId: string): Promise<Chat[]> => {
 
 export const subscribeToChat = (userId: string, otherUserId: string, onUpdate: (chat: Chat | null) => void) => {
   console.log('Subscribing to chat')
-  const chatsRef = collection(FIREBASE_DB, 'chats');
+  const chatsRef = collection(getFirestoreDb(), 'chats');
 
   // Create a query to find the chat document for the given user pair
   const chatQuery = query(chatsRef, where('user1', 'in', [userId, otherUserId]), where('user2', 'in', [userId, otherUserId]));
@@ -88,8 +84,8 @@ export const subscribeToChat = (userId: string, otherUserId: string, onUpdate: (
           bookIsbn: '', // You may want to set this to an actual value
         });
         
-        await updateUserById(userId, { chatID: (firebase.firestore.FieldValue as any).arrayUnion(newChatID) });
-        await updateUserById(otherUserId, {chatID: (firebase.firestore.FieldValue as any).arrayUnion(newChatID)});
+        await addChatToUser(userId, newChatID);
+        await addChatToUser(otherUserId, newChatID);
 
         onUpdate({ id: newChatRef.id, user1: userId, user2: otherUserId, messageThread: [] });
       } catch (error) {
@@ -112,7 +108,7 @@ export const sendSingleMessage = async (chat: Chat, newMessage: SingleMessage): 
   console.log('Sending single message')
   try {
     // Find the chat document by object ID
-    const chatsRef = collection(FIREBASE_DB, 'chats');
+    const chatsRef = collection(getFirestoreDb(), 'chats');
     const querySnapshot = await getDocs(query(chatsRef, where('id', '==', chat.id)));
 
     if (querySnapshot.empty) {
@@ -139,7 +135,7 @@ export const markAllMessagesAsRead = async (chatId: string, userId: string): Pro
   console.log('marking all messages a read')
   try {
     // Query for the chat documents where the chat ID matches
-    const chatQuery = query(collection(FIREBASE_DB, 'chats'), where('id', '==', chatId));
+    const chatQuery = query(collection(getFirestoreDb(), 'chats'), where('id', '==', chatId));
 
     // Fetch the chat documents
     const chatSnapshot = await getDocs(chatQuery);

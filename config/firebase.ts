@@ -1,30 +1,44 @@
-import { initializeApp } from "firebase/app";
 import Constants from 'expo-constants';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
+import { Auth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
+import { Firestore, getFirestore } from 'firebase/firestore';
+import { FirebaseStorage, getStorage } from 'firebase/storage';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-import { getFirestore } from "firebase/firestore"
-import firebase from 'firebase/compat/app'
-import 'firebase/compat/storage'
+
+const extra = Constants.expoConfig?.extra ?? {};
 
 const firebaseConfig = {
-  apiKey: Constants.expoConfig?.extra?.firebaseApiKey,
-  authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain,
-  projectId: Constants.expoConfig?.extra?.firebaseProjectId,
-  storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
-  messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
-  appId: Constants.expoConfig?.extra?.firebaseAppId,
-  webClientId: Constants.expoConfig?.extra.webClientId,
-  webClientSecretKey: Constants.expoConfig?.extra?.webClientSecretKey,
-  googleApiKey: Constants.expoConfig?.extra?.googleApiKey 
+  apiKey: extra.firebaseApiKey,
+  authDomain: extra.firebaseAuthDomain,
+  projectId: extra.firebaseProjectId,
+  storageBucket: extra.firebaseStorageBucket,
+  messagingSenderId: extra.firebaseMessagingSenderId,
+  appId: extra.firebaseAppId,
 };
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig)
-}
+export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
 
-const FIREBASE_APP = initializeApp(firebaseConfig);
-const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-})
-const FIREBASE_DB = getFirestore(FIREBASE_APP)
-export { firebase, FIREBASE_APP, FIREBASE_AUTH, FIREBASE_DB }
+// Firebase is initialized on first use, so features running on mocks never touch it
+// and the app starts without any FIREBASE_* variables set.
+let auth: Auth | undefined;
+
+const getFirebaseApp = (): FirebaseApp => {
+  if (!isFirebaseConfigured) {
+    throw new Error(
+      'Firebase is not configured. Set the FIREBASE_* variables in .env, ' +
+      'or switch this feature to mocks in .env.local (see .env.example).'
+    );
+  }
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+};
+
+export const getFirebaseAuth = (): Auth => {
+  auth ??= initializeAuth(getFirebaseApp(), {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+  });
+  return auth;
+};
+
+export const getFirestoreDb = (): Firestore => getFirestore(getFirebaseApp());
+
+export const getFirebaseStorage = (): FirebaseStorage => getStorage(getFirebaseApp());

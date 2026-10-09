@@ -7,12 +7,12 @@ import {
   removeFromCart,
   clearCart,
 } from "../../Services/ShoppingCartService";
-import { FIREBASE_AUTH } from "../../config/firebase";
+import { getCurrentUser } from "../../Services/AuthService";
 import { ShoppingCartItem } from "../../Models/ShoppingCart";
 
 const ShoppingCartScreen = ({ navigation }) => {
   const [cartItems, setCartItems] = useState([] as ShoppingCartItem[]);
-  const currentUser = FIREBASE_AUTH.currentUser;
+  const currentUser = getCurrentUser();
 
   useEffect(() => {
     loadCartItems();

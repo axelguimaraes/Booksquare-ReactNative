@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera/next';
-import { CameraType } from 'expo-camera/build/Camera.types';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 
 interface BarcodeScannerProps {
   onBarCodeScanned: (data: string) => void;
@@ -9,7 +8,7 @@ interface BarcodeScannerProps {
 }
 
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onBarCodeScanned, onClose }) => {
-  const [facing, setFacing] = useState(CameraType.back);
+  const [facing, setFacing] = useState<CameraType>('back');
   const [, requestPermission] = useCameraPermissions();
 
   useEffect(() => {

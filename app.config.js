@@ -1,6 +1,4 @@
-import 'dotenv/config';
-
-
+// Expo CLI loads .env / .env.local into process.env before evaluating this file.
 export default {
   "expo": {
     "plugins": [
@@ -17,8 +15,10 @@ export default {
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ]
-    ],    
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-status-bar"
+    ],
     "name": "Booksquare",
     "slug": "Booksquare",
     "version": "1.0.0",

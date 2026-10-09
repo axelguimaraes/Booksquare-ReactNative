@@ -4,7 +4,7 @@ import BookCard from '../../Components/BookCard';
 import { getAllBooks, subscribeToBooks } from '../../Services/BooksService';
 import { Book, TransactionType } from '../../Models/Book';
 import { NavigationProp } from '@react-navigation/native';
-import { FIREBASE_AUTH } from '../../config/firebase';
+import { getCurrentUser } from '../../Services/AuthService';
 
 interface TradeScreenProps {
   navigation: NavigationProp<any>;
@@ -36,7 +36,7 @@ const TradeScreen: React.FC<TradeScreenProps> = ({ navigation }) => {
   };
 
   const handleActionButton = (item: Book) => {
-    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+    if (getCurrentUser().isAnonymous) {
       alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
       return
     }

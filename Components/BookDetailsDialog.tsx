@@ -6,8 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationParamsList } from '../Navigation/UserStack';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { getUserByDisplayName, getUserById, getUserIdByDisplayName } from '../Services/UsersService';
-import { FIREBASE_AUTH } from '../config/firebase';
-import Swiper from 'react-native-swiper'
+import { getCurrentUser } from '../Services/AuthService';
 
 interface Props {
   book: Book;
@@ -22,6 +21,8 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
   const [userId, setUserId] = useState<string | null>(null)
   const [sizeMode, setSizeMode] = useState<ImageResizeMode>("contain");
   const [loading, setLoading] = useState(false);
+  const [photoWidth, setPhotoWidth] = useState(0);
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -33,7 +34,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
 
   const handleOwnerClick = () => {
     onClose()
-    if (book.currentOwner === FIREBASE_AUTH.currentUser.displayName) {
+    if (book.currentOwner === getCurrentUser().displayName) {
       navigation.navigate('Profile');
     } else {
       navigation.navigate('ProfileOtherUsers', { userId: userId });
@@ -50,7 +51,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
   };
 
   const onContactButton = async () => {
-    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+    if (getCurrentUser().isAnonymous) {
       alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
       return
     }
@@ -59,7 +60,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
         const owner = await getUserByDisplayName(book.currentOwner);
 
         if (owner) {
-            navigation.navigate('ChatScreen', { currentUser: FIREBASE_AUTH.currentUser.uid, otherUser: owner.userId, book: book });
+            navigation.navigate('ChatScreen', { currentUser: getCurrentUser().uid, otherUser: owner.userId, book: book });
         } else {
             alert('Erro ao buscar utilizador!');
         }
@@ -86,17 +87,29 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
           </TouchableOpacity>
 
           {/* Photos */}
-          <View style={{ height: 350, marginTop: 20 }}>
-            <Swiper>
+          <View style={styles.photosContainer} onLayout={(e) => setPhotoWidth(e.nativeEvent.layout.width)}>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => setPhotoIndex(Math.round(e.nativeEvent.contentOffset.x / photoWidth))}
+            >
               {book.photos.map((imageUrl, index) => (
-                <View key={index} style={{ flex: 1, height: '100%', position: 'relative' }}>
+                <View key={index} style={{ width: photoWidth, height: '100%', position: 'relative' }}>
                   <Image source={{ uri: imageUrl }} style={styles.bookImage} resizeMode={sizeMode} />
                   <TouchableOpacity style={styles.expandIcon} onPress={() => handleExpandImage()}>
                     <Ionicons name="expand" size={24} color="white" />
                   </TouchableOpacity>
                 </View>
               ))}
-            </Swiper>
+            </ScrollView>
+            {book.photos.length > 1 && (
+              <View style={styles.pagination}>
+                {book.photos.map((_, index) => (
+                  <View key={index} style={[styles.dot, index === photoIndex && styles.activeDot]} />
+                ))}
+              </View>
+            )}
           </View>
 
           {/* Book details */}
@@ -128,7 +141,7 @@ const BookDetailsDialog: React.FC<Props> = ({ book, visible, onClose, onActionBu
             )}
 
             {/* IconAndTextButton (Add to cart) */}
-            {book.currentOwner === FIREBASE_AUTH.currentUser.displayName ? (<></>) :
+            {book.currentOwner === getCurrentUser().displayName ? (<></>) :
               hasTransactionType ? (
                 <>
                   <TouchableOpacity
@@ -191,10 +204,28 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
   },
-  swiperContainer: {
-    flex: 1,
+  photosContainer: {
+    width: '100%',
+    height: 350,
+    marginTop: 20,
+  },
+  pagination: {
+    position: 'absolute',
+    bottom: 25,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    margin: 3,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  activeDot: {
+    backgroundColor: '#007aff',
   },
   bookImage: {
     width: '100%', // Make the image take up full width

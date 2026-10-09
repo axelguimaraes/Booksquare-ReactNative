@@ -1,12 +1,12 @@
-import { Book, Traded, TransactionType } from "../Models/Book";
-import { FIREBASE_DB } from "../config/firebase";
-import { collection, addDoc, getDocs, Query, query, where, CollectionReference, DocumentData, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { Book, Traded, TransactionType } from "../../Models/Book";
+import { getFirestoreDb } from "../../config/firebase";
+import { collection, addDoc, getDocs, Query, query, where, CollectionReference, DocumentData, onSnapshot, doc, getDoc, updateDoc, runTransaction } from 'firebase/firestore';
 
 // Function to fetch all books from the database
 export const getAllBooks = async (transactionType?: TransactionType): Promise<Book[]> => {
   console.log('Getting all books')
   try {
-    const booksCollection = collection(FIREBASE_DB, 'books');
+    const booksCollection = collection(getFirestoreDb(), 'books');
     let booksQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
 
     if (transactionType) {
@@ -32,7 +32,7 @@ export const getAllBooks = async (transactionType?: TransactionType): Promise<Bo
 
 export const subscribeToBooks = (transactionType, onUpdate) => {
   console.log('Subscribing to books')
-  const booksRef = collection(FIREBASE_DB, 'books');
+  const booksRef = collection(getFirestoreDb(), 'books');
 
   // Create a query to filter books by transaction type
   const transactionTypeQuery = query(booksRef, where('transactionType', '==', transactionType), where('isVisible', '==', true));
@@ -61,22 +61,10 @@ export const subscribeToBooks = (transactionType, onUpdate) => {
 };
 
 
-export const getBookInfoByISBN = async (isbn) => {
-  console.log('Getting book info by ISBN')
-  try {
-    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
-    const data = await response.json();
-    return data.items[0]
-  } catch (error) {
-    console.error("Error fetching book info:", error);
-    return null
-  }
-}
-
 export const getBookByIsbn = async (isbn: number): Promise<Book | null> => {
   console.log('Getting book by ISBN');
   try {
-    const booksCollection = collection(FIREBASE_DB, 'books');
+    const booksCollection = collection(getFirestoreDb(), 'books');
     const booksQuery = query(booksCollection, where('isbn', '==', isbn));
     const querySnapshot = await getDocs(booksQuery);
 
@@ -90,32 +78,9 @@ export const getBookByIsbn = async (isbn: number): Promise<Book | null> => {
   }
 };
 
-export const populateBookFromJson = (json: any): Book => {
-  console.log('populating book from JSON')
-  const genres: string[] = json.volumeInfo.categories || [];
-
-  const photos: string[] = json.volumeInfo.imageLinks && json.volumeInfo.imageLinks.thumbnail
-    ? [json.volumeInfo.imageLinks.thumbnail.replace('http://', 'https://')] 
-    : [];
-
-  return {
-    isbn: parseInt(json.id, 10),
-    title: json.volumeInfo.title,
-    description: json.volumeInfo.description,
-    price: undefined,
-    photos: photos,
-    year: new Date(json.volumeInfo.publishedDate).getFullYear(),
-    author: json.volumeInfo.authors.join(', '),
-    genre: genres,
-    transactionType: null,
-    currentOwner: null,
-    isVisible: true,
-  };
-};
-
 export const addBook = async (book: Book) => {
   console.log('Adding book')
-  const booksQuery = query(collection(FIREBASE_DB, 'books'),
+  const booksQuery = query(collection(getFirestoreDb(), 'books'),
     where('isbn', '==', book.isbn),
     where('currentOwner', '==', book.currentOwner)
   );
@@ -125,14 +90,14 @@ export const addBook = async (book: Book) => {
     throw new Error('A book with the same ISBN already exists.');
   }
 
-  const docRef = await addDoc(collection(FIREBASE_DB, 'books'), book);
+  const docRef = await addDoc(collection(getFirestoreDb(), 'books'), book);
   return docRef.id;
 }
 
 export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
   console.log('Renting book')
   try {
-    const bookRef = doc(FIREBASE_DB, 'books', bookId);
+    const bookRef = doc(getFirestoreDb(), 'books', bookId);
 
     const bookSnapshot = await getDoc(bookRef);
 
@@ -170,7 +135,7 @@ export const rentBook = async ({ bookId, userId, date }): Promise<void> => {
 export const tradeBook = async ({ bookId, userId, isbn, tradedByPhotos }: { bookId: string, userId: string, isbn: number, tradedByPhotos: string[] }): Promise<void> => {
   console.log('Trading book')
   try {
-    const bookRef = doc(FIREBASE_DB, 'books', bookId);
+    const bookRef = doc(getFirestoreDb(), 'books', bookId);
     const bookSnapshot = await getDoc(bookRef);
 
     if (!bookSnapshot.exists()) {
@@ -197,4 +162,29 @@ export const tradeBook = async ({ bookId, userId, isbn, tradedByPhotos }: { book
     console.error('Error trading book:', error);
     throw error;
   }
+};
+
+// Marks a book as bought by the buyer. Moved from ShoppingCartService.purchaseItems so the
+// cart never writes to the books collection directly.
+export const purchaseBook = async ({ isbn, buyerId, buyerName }: { isbn: number, buyerId: string, buyerName: string }): Promise<void> => {
+  console.log('Purchasing book')
+  const db = getFirestoreDb();
+  const bookQuerySnapshot = await getDocs(query(collection(db, 'books'), where('isbn', '==', isbn)));
+  if (bookQuerySnapshot.empty) {
+    return;
+  }
+
+  const bookRef = bookQuerySnapshot.docs[0].ref;
+  await runTransaction(db, async (transaction) => {
+    const bookSnap = await transaction.get(bookRef);
+    if (bookSnap.exists()) {
+      const bookData: Book = bookSnap.data() as Book;
+      if (bookData.isVisible && bookData.currentOwner !== buyerId) {
+        transaction.update(bookRef, {
+          isVisible: false,
+          currentOwner: buyerName,
+        });
+      }
+    }
+  });
 };

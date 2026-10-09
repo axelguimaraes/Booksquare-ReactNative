@@ -7,9 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePickerResult } from 'expo-image-picker';
 import { tradeBook } from '../../Services/BooksService';
-import { FIREBASE_AUTH } from '../../config/firebase';
-import uploadMedia from '../../Utils/uploadMedia';
-import { useCameraPermissions } from 'expo-camera/next';
+import { getCurrentUser } from '../../Services/AuthService';
+import { uploadMedia } from '../../Services/StorageService';
 import BarcodeScanner from '../../Utils/useBarcodeScanner';
 import { Transaction } from '../../Models/Transaction';
 import { getUserIdByDisplayName } from '../../Services/UsersService';
@@ -24,7 +23,6 @@ const TradeForm = ({ route }) => {
     const [bookToTradeISBN, setBookToTradeISBN] = useState(null)
     const [isBarcodeScannerVisible, setIsBarcodeScannerVisible] = useState(false);
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
-    const [permission, requestPermission] = useCameraPermissions();
 
     useEffect(() => {
         (async () => {
@@ -38,7 +36,6 @@ const TradeForm = ({ route }) => {
 
     const handleCloseScanner = () => {
         setIsBarcodeScannerVisible(false);
-        useCameraPermissions()[0]
     };
 
     const handleDiscardBook = () => {
@@ -65,7 +62,7 @@ const TradeForm = ({ route }) => {
 
             await tradeBook({
                 bookId: book.id,
-                userId: FIREBASE_AUTH.currentUser.uid,
+                userId: getCurrentUser().uid,
                 isbn: bookToTradeISBN,
                 tradedByPhotos: downloadURLs
             }).then(async () => {
@@ -74,7 +71,7 @@ const TradeForm = ({ route }) => {
                     timestamp: Date.now(),
                     book: book,
                     idSender: await getUserIdByDisplayName(book.currentOwner),
-                    idReceiver: FIREBASE_AUTH.currentUser.uid,
+                    idReceiver: getCurrentUser().uid,
                     transactionType: book.transactionType
                 }
                 await createTransaction(transaction).catch((error) => console.error('Error creating transaction',error))
@@ -96,7 +93,7 @@ const TradeForm = ({ route }) => {
 
     const handlePhotosButton = async () => {
         let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            mediaTypes: ['images', 'videos'],
             aspect: [4, 3],
             quality: 1,
             allowsMultipleSelection: true,

@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList, TouchableOpacity, Text, ActivityIndicator, 
 import ChatCard from '../../Components/ChatCard';
 import { getUserById } from '../../Services/UsersService';
 import { User } from '../../Models/User';
-import { FIREBASE_AUTH } from '../../config/firebase';
+import { getCurrentUser } from '../../Services/AuthService';
 
 const MessagesList = ({ data, navigation, currentUser, onUpdate }) => {
   const [otherUsers, setOtherUsers] = useState<{ [userId: string]: User }>({});
@@ -31,7 +31,7 @@ const MessagesList = ({ data, navigation, currentUser, onUpdate }) => {
   }, [data, currentUser]);
 
   const handleCardPress = (item) => {
-    if (item.user1 == FIREBASE_AUTH.currentUser.uid) {
+    if (item.user1 == getCurrentUser().uid) {
       navigation.navigate('ChatScreen', { currentUser: item.user1, otherUser: item.user2}); // User IDs
     } else {
       navigation.navigate('ChatScreen', { currentUser: item.user2, otherUser: item.user1}); // User IDs
@@ -62,7 +62,7 @@ const MessagesList = ({ data, navigation, currentUser, onUpdate }) => {
               messageSnippet={item.messageThread[item.messageThread.length - 1].content}
               timestamp={item.messageThread[item.messageThread.length - 1].timestamp}
               isRead={item.messageThread[item.messageThread.length - 1].isRead}
-              isCurrentUser={item.messageThread[item.messageThread.length - 1].senderID === FIREBASE_AUTH.currentUser.uid}
+              isCurrentUser={item.messageThread[item.messageThread.length - 1].senderID === getCurrentUser().uid}
             />
           </TouchableOpacity>
         ) : null;

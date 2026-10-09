@@ -1,11 +1,11 @@
-import { CollectionReference, DocumentData, Query, addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
-import { User } from "../Models/User";
-import { FIREBASE_DB } from "../config/firebase";
+import { CollectionReference, DocumentData, Query, addDoc, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import { User } from "../../Models/User";
+import { getFirestoreDb } from "../../config/firebase";
 
 export const addUser = async (userData: User): Promise<void> => {
   console.log('Adding user')
   try {
-    const docRef = await addDoc(collection(FIREBASE_DB, 'users'), userData)
+    const docRef = await addDoc(collection(getFirestoreDb(), 'users'), userData)
     console.log('User added with ID: ', docRef.id);
   } catch (error) {
     console.error('Error adding user: ', error);
@@ -16,7 +16,7 @@ export const addUser = async (userData: User): Promise<void> => {
 export const getUserById = async (userId: string): Promise<User | null> => {
   console.log('Getting user by ID')
   try {
-    const usersCollection = collection(FIREBASE_DB, 'users');
+    const usersCollection = collection(getFirestoreDb(), 'users');
     let usersQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
     usersQuery = query(usersCollection, where('userId', '==', userId))
     const querySnapshot = await getDocs(usersQuery)
@@ -38,7 +38,7 @@ export const getUserById = async (userId: string): Promise<User | null> => {
 export const getUserByDisplayName = async (displayName: string): Promise<User | null> => {
   console.log('Getting user by display name')
   try {
-    const usersCollection = collection(FIREBASE_DB, 'users');
+    const usersCollection = collection(getFirestoreDb(), 'users');
     let usersQuery: CollectionReference<DocumentData, DocumentData> | Query<DocumentData>;
     usersQuery = query(usersCollection, where('displayName', '==', displayName))
     const querySnapshot = await getDocs(usersQuery)
@@ -59,7 +59,7 @@ export const getUserByDisplayName = async (displayName: string): Promise<User | 
 export const getUserIdByDisplayName = async (displayName: string): Promise<string | null> => {
   console.log('Getting user ID by display name')
   try {
-    const usersRef = collection(FIREBASE_DB, 'users');
+    const usersRef = collection(getFirestoreDb(), 'users');
     const q = query(usersRef, where('displayName', '==', displayName));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
@@ -78,7 +78,7 @@ export const getUserIdByDisplayName = async (displayName: string): Promise<strin
 export const updateUser = async (userId: string, userData: Partial<User>): Promise<void> => {
   console.log('Updating user')
   try {
-    await updateDoc(doc(FIREBASE_DB, 'users', userId), userData);
+    await updateDoc(doc(getFirestoreDb(), 'users', userId), userData);
     console.log('User updated successfully');
   } catch (error) {
     console.error('Error updating user: ', error);
@@ -90,7 +90,7 @@ export const updateUserById = async (userId: string, userData: Partial<User>): P
   console.log('Updating user by ID')
   try {
     // Construct a query to find the user document based on userId
-    const usersRef = collection(FIREBASE_DB, 'users');
+    const usersRef = collection(getFirestoreDb(), 'users');
     const userQuery = query(usersRef, where('userId', '==', userId));
 
     // Execute the query to find the document
@@ -99,7 +99,7 @@ export const updateUserById = async (userId: string, userData: Partial<User>): P
     // If there is a matching document, update it
     if (!querySnapshot.empty) {
       // Get the document reference from the query snapshot
-      const userDocRef = doc(FIREBASE_DB, 'users', querySnapshot.docs[0].id);
+      const userDocRef = doc(getFirestoreDb(), 'users', querySnapshot.docs[0].id);
 
       // Update the document with the provided data
       await updateDoc(userDocRef, userData);
@@ -113,11 +113,28 @@ export const updateUserById = async (userId: string, userData: Partial<User>): P
   }
 };
 
+export const addChatToUser = async (userId: string, chatId: string): Promise<void> => {
+  console.log('Adding chat to user')
+  try {
+    const usersRef = collection(getFirestoreDb(), 'users');
+    const querySnapshot = await getDocs(query(usersRef, where('userId', '==', userId)));
+
+    if (!querySnapshot.empty) {
+      await updateDoc(querySnapshot.docs[0].ref, { chatID: arrayUnion(chatId) });
+    } else {
+      console.log('No matching document found for userId:', userId);
+    }
+  } catch (error) {
+    console.error('Error adding chat to user: ', error);
+    throw new Error('Error adding chat to user');
+  }
+};
+
 // Function to delete a user from Firestore
 export const deleteUser = async (userId: string): Promise<void> => {
   console.log('Deleting user')
   try {
-    await deleteDoc(doc(FIREBASE_DB, 'users', userId));
+    await deleteDoc(doc(getFirestoreDb(), 'users', userId));
     console.log('User deleted successfully');
   } catch (error) {
     console.error('Error deleting user: ', error);

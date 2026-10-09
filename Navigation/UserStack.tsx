@@ -12,7 +12,6 @@ import ShoppingCartScreen from '../Screens/Shopping/ShoppingCartScreen';
 import ChatScreen from '../Screens/Messages/ChatScreen';
 import RentForm from '../Screens/Rent/RentForm';
 import TradeForm from '../Screens/Trade/TradeForm';
-import { FIREBASE_AUTH } from '../config/firebase';
 import ProfileOtherUsers from '../Screens/Profile/ProfileOtherUsers';
 import { User } from '../Models/User';
 import { Book } from '../Models/Book';
@@ -37,12 +36,11 @@ export type StackNavigationParamsList = {
 }
 
 const Stack = createStackNavigator<StackNavigationParamsList>();
-const user = FIREBASE_AUTH.currentUser
 
 export default function UserStack() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName='Home'>
+      <Stack.Navigator id="UserStack" initialRouteName='Home'>
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} />
         <Stack.Screen name="Search" component={Search} options={{ headerShown: false }} />

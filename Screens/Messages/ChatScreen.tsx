@@ -9,7 +9,7 @@ import { getChat, markAllMessagesAsRead, sendSingleMessage, subscribeToChat } fr
 import { Chat, SingleMessage } from '../../Models/Chat';
 import uuid from 'react-native-uuid';
 import { getUserById } from '../../Services/UsersService';
-import { FIREBASE_AUTH } from '../../config/firebase';
+import { getCurrentUser } from '../../Services/AuthService';
 
 interface Props {
   currentUser: User;
@@ -77,7 +77,7 @@ const ChatScreen: React.FC<Props> = () => {
 
   useEffect(() => {
     if (user1 && user2 && currentChat) {
-      markAllMessagesAsRead(currentChat.id, FIREBASE_AUTH.currentUser.uid)
+      markAllMessagesAsRead(currentChat.id, getCurrentUser().uid)
         .catch(error => console.error('Error marking messages as read:', error));
     }
   }, [user1, user2, currentChat])

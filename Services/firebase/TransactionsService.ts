@@ -1,5 +1,5 @@
-import { Transaction } from "../Models/Transaction";
-import { FIREBASE_DB } from "../config/firebase";
+import { Transaction } from "../../Models/Transaction";
+import { getFirestoreDb } from "../../config/firebase";
 import {
   collection,
   addDoc,
@@ -20,7 +20,7 @@ import {
 export const createTransaction = async (transactionData: Transaction) => {
   console.log('Creating transaction')
   const transactionsQuery = query(
-    collection(FIREBASE_DB, "transactions"),
+    collection(getFirestoreDb(), "transactions"),
     where("id", "==", transactionData.id)
   );
   const transactionsSnapshot = await getDocs(transactionsQuery)
@@ -29,7 +29,7 @@ export const createTransaction = async (transactionData: Transaction) => {
     throw new Error('A transaction with the same ID already exists.')
   }
 
-  const docRef = await addDoc(collection(FIREBASE_DB, 'transactions'), transactionData)
+  const docRef = await addDoc(collection(getFirestoreDb(), 'transactions'), transactionData)
   return docRef.id
 };
 
@@ -37,7 +37,7 @@ export const createTransaction = async (transactionData: Transaction) => {
 export const getAllUserTransactions = async (userId: string): Promise<Transaction[]> => {
   console.log('Getting all user transactions')
   try {
-    const transactionsCollection = collection(FIREBASE_DB, 'transactions')
+    const transactionsCollection = collection(getFirestoreDb(), 'transactions')
     
     // Query documents where 'idSender' matches userId
     const senderQuery = query(

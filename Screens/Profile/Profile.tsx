@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import BottomBar from "../../Components/BottomBar";
 import { Ionicons } from "@expo/vector-icons";
-import { FIREBASE_AUTH } from "../../config/firebase";
+import { getCurrentUser, logout } from "../../Services/AuthService";
 import { User } from "../../Models/User";
 import { getUserById } from "../../Services/UsersService";
 import { Transaction } from "../../Models/Transaction";
@@ -21,8 +21,8 @@ const UserProfileScreen = ({ navigation }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const user = FIREBASE_AUTH.currentUser;
-  const isAnonymous = FIREBASE_AUTH.currentUser.isAnonymous ? true : false;
+  const user = getCurrentUser();
+  const isAnonymous = getCurrentUser().isAnonymous ? true : false;
 
   useEffect(() => {
     if (!isAnonymous && user) {
@@ -47,7 +47,7 @@ const UserProfileScreen = ({ navigation }) => {
   }, [user]); // Only depend on 'user' to prevent infinite loops
 
   const handleLogout = () => {
-    FIREBASE_AUTH.signOut().then(() => {
+    logout().then(() => {
       alert("A sua sessão foi terminada");
     });
   };

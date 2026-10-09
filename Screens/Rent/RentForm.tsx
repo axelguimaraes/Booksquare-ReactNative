@@ -6,7 +6,7 @@ import BottomBar from '../../Components/BottomBar';
 import { useNavigation } from '@react-navigation/native';
 import DatePicker from '@react-native-community/datetimepicker';
 import { rentBook } from '../../Services/BooksService';
-import { FIREBASE_AUTH } from '../../config/firebase';
+import { getCurrentUser } from '../../Services/AuthService';
 import { createTransaction } from '../../Services/TransactionsService';
 import { Transaction } from '../../Models/Transaction';
 import uuid from 'react-native-uuid'
@@ -26,7 +26,7 @@ const RentForm = ({ route }) => {
     const handleConfirmButton = () => {
         rentBook({
             bookId: book.id,
-            userId: FIREBASE_AUTH.currentUser.uid,
+            userId: getCurrentUser().uid,
             date: selectedDate
         })
             .then(async () => {
@@ -35,7 +35,7 @@ const RentForm = ({ route }) => {
                     timestamp: Date.now(),
                     book: book,
                     idSender: await getUserIdByDisplayName(book.currentOwner),
-                    idReceiver: FIREBASE_AUTH.currentUser.uid,
+                    idReceiver: getCurrentUser().uid,
                     transactionType: book.transactionType
                 }
                 await createTransaction(transaction).catch((error) => console.error('Error creating transaction',error))

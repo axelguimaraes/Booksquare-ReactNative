@@ -4,7 +4,7 @@ import BookCard from '../../Components/BookCard';
 import { getAllBooks, subscribeToBooks } from '../../Services/BooksService';
 import { Book, TransactionType } from '../../Models/Book';
 import { addToCart } from '../../Services/ShoppingCartService';
-import { FIREBASE_AUTH } from '../../config/firebase';
+import { getCurrentUser } from '../../Services/AuthService';
 
 const BuyScreen: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
@@ -32,11 +32,11 @@ const BuyScreen: React.FC = () => {
   };
 
   const addBookToCart = (book: Book) => {
-    if (FIREBASE_AUTH.currentUser.isAnonymous) {
+    if (getCurrentUser().isAnonymous) {
       alert('Inicie sessão com uma conta para benificiar de todas as funcionalidades.')
       return
     }
-    addToCart(FIREBASE_AUTH.currentUser.uid, book)
+    addToCart(getCurrentUser().uid, book)
   }
 
   return (
